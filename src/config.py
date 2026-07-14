@@ -6,6 +6,8 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD_ID = os.getenv("GUILD_ID")
 DATABASE_URL = os.getenv("DATABASE_URL")
+CANAL_PAINEL_RECRUTAMENTO_ID = 1486369071590281326  # preencha com o ID do canal onde o painel vai ficar
+LOGO_PATH = "assets/logo.png"
 
 # IDs dos cargos
 CARGOS = {
@@ -82,7 +84,34 @@ HIERARQUIA_CONCESSAO = {
 
 }
    
+TOTAL_PERGUNTAS_PROVA = 11
 COOLDOWN_REPROVACAO_HORAS = 24
 TEMPO_LIMITE_PROVA_MINUTOS = 60
 NOTA_MINIMA_APROVACAO = 70
     
+CANAIS = {
+
+    "MATERIAL_ESTUDO": 1486369061507043348,
+    "AVALIACAO": 1486369066091282623,
+    "APROVAR_REPROVAR": 1526595318974517340,
+    "RECRUTAMENTOS": 1486369074341613638,
+    "LOG_RECRUTAMENTOS": 1486369287139754014,
+    "LOG_APROVACOES": 1526596056274567299,
+    "LOG_REPROVACOES": 1526596314744492134,
+    "LOG_CARGOS": 1526596799509561404,
+    "LOG_ERROS": 1526596982066380990
+}
+
+PREFIXOS_NICKNAME = {
+    "🔰・Enfermeiro (a)": "[ ENF ]",
+    "🚑・Paramédico": "[ PAR ]",
+    "🩺・Psicólogo": "[ PSI ]",
+    "✈️・Recrutador": "[ REC ]",
+    "🥼・Instrutor": "[ INS ]",
+    "Vice Diretor": "[ V・DIR ]",
+    "👑・DIRETOR": "[ DIR ]",
+    "🔍・Corregedoria": "[ COR ]",
+    "Vice Diretor Geral": "[V.DIR.G]",
+    "Diretor Geral": "⟦DIR · G⟧",
+    "👑 Responsável Geral": "⟦RESP · G⟧"
+}

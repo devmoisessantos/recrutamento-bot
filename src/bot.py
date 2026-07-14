@@ -2,7 +2,14 @@ import discord
 from discord.ext import commands
 import logging
 
+from src.panels.avaliacao_panel import PainelAvaliacaoLayout
+from src.panels.recrutamento_panel import PainelRecrutamentoLayout
+from src.database.connection import init_db
+from src.database.seed_perguntas import seed_perguntas_se_vazio
+
 from src.config import DISCORD_TOKEN, GUILD_ID
+from src.panels.setup_paineis import garantir_painel_recrutamento, garantir_painel_avaliacao
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("recrutamento-bot")
@@ -26,15 +33,33 @@ class RecrutamentoBot(commands.Bot):
         await self.tree.sync(guild=guild)
         logger.info(f"Comandos de barra sincronizados com o servidor (ID: {GUILD_ID})")
 
+        await init_db()
+        await seed_perguntas_se_vazio()
+
+        self.painel_recrutamento_view = PainelRecrutamentoLayout()
+        self.painel_avaliacao_view = PainelAvaliacaoLayout()
+
+        self.add_view(self.painel_recrutamento_view)
+        self.add_view(self.painel_avaliacao_view)
+        # ... resto igual
+
     async def on_ready(self):
         logger.info(f"Bot conectado como {self.user} (ID: {self.user.id})")
         guild = self.get_guild(int(GUILD_ID))
+        await garantir_painel_recrutamento(self)
+        await garantir_painel_avaliacao(self)
         if guild:
             logger.info(f"Conectado ao servidor: {guild.name} (ID: {guild.id})")
         else:
             logger.warning("Não foi possível encontrar o servidor com o ID fornecido.")
 
+
+
 bot = RecrutamentoBot()
 
 def run():
     bot.run(DISCORD_TOKEN)
+    
+
+
+
