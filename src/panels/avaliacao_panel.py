@@ -1,9 +1,10 @@
 import discord
 
 from src.config import LOGO_PATH
+from src.utils.error_handling import LoggingViewMixin
 
 
-class PainelAvaliacaoLayout(discord.ui.LayoutView):
+class PainelAvaliacaoLayout(LoggingViewMixin, discord.ui.LayoutView):
     action_row = discord.ui.ActionRow()
 
     container = discord.ui.Container(

@@ -1,15 +1,15 @@
 import discord 
-from discord.ext import commands
+import traceback
 import logging
+from discord.ext import commands
 
 from src.panels.avaliacao_panel import PainelAvaliacaoLayout
 from src.panels.recrutamento_panel import PainelRecrutamentoLayout
 from src.database.connection import init_db
 from src.database.seed_perguntas import seed_perguntas_se_vazio
 
-from src.config import DISCORD_TOKEN, GUILD_ID
+from src.config import DISCORD_TOKEN, GUILD_ID, CANAIS
 from src.panels.setup_paineis import garantir_painel_recrutamento, garantir_painel_avaliacao
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("recrutamento-bot")
@@ -43,6 +43,21 @@ class RecrutamentoBot(commands.Bot):
         self.add_view(self.painel_avaliacao_view)
         # ... resto igual
 
+
+        @self.tree.error
+        async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
+            guild = interaction.guild
+            canal = guild.get_channel(CANAIS["LOG_ERROS"]) if guild else None
+            tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))[-1200:]
+
+            if canal:
+                await canal.send(
+                    f"⚠️ **Erro em Slash Command**\n"
+                    f"Comando: `/{interaction.command.name if interaction.command else '?'}`\n"
+                    f"Usuário: {interaction.user.mention}\n"
+                    f"```py\n{tb}\n```"
+                )
+                
     async def on_ready(self):
         logger.info(f"Bot conectado como {self.user} (ID: {self.user.id})")
         guild = self.get_guild(int(GUILD_ID))

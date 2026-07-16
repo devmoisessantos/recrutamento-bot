@@ -8,6 +8,7 @@ from src.config import CARGOS, CANAIS, TOTAL_PERGUNTAS_PROVA, NOTA_MINIMA_APROVA
 from src.database.connection import async_session
 from src.database.models import Recrutamento, Pergunta, RespostaProva
 from src.utils.logger import log_cargo
+from src.utils.error_handling import LoggingViewMixin
 from src.panels.aprovacao_panel import AprovacaoView
 
 async def iniciar_avaliacao(interaction: discord.Interaction):
@@ -40,7 +41,7 @@ async def iniciar_avaliacao(interaction: discord.Interaction):
         recrutamento.formulario_aberto = True
         recrutamento.status = "EM_PROVA"
         recrutamento.pergunta_atual = 0
-        recrutamento.data_inicio_prova = datetime.now(timezone.utc)
+        recrutamento.data_inicio_prova = datetime.utcnow()  # antes: datetime.now(timezone.utc)
         await session.commit()
 
     # Troca de cargo: Estudante -> Prova
@@ -74,7 +75,7 @@ async def enviar_pergunta(interaction: discord.Interaction, numero: int):
         await interaction.response.send_message(conteudo, view=view, ephemeral=True)
 
 
-class PerguntaView(discord.ui.View):
+class PerguntaView(LoggingViewMixin, discord.ui.View):
     def __init__(self, numero: int, pergunta: Pergunta):
         super().__init__(timeout=None)
         self.numero = numero
@@ -149,7 +150,7 @@ async def finalizar_avaliacao(interaction: discord.Interaction):
                 Recrutamento.status == "EM_PROVA",
             )
         )
-        recrutamento = resultado.scalar_one_or_none()
+        recrutamento = resultado.scalar_one()
 
         resultado_respostas = await session.execute(
             select(RespostaProva).where(RespostaProva.recrutamento_id == recrutamento.id)
@@ -164,7 +165,30 @@ async def finalizar_avaliacao(interaction: discord.Interaction):
         recrutamento.status = "AGUARDANDO_DECISAO"
         await session.commit()
 
-        respostas_erradas = [r.numero_pergunta for r in respostas if not r.correta]
+        respostas_erradas_ids = [r.numero_pergunta for r in respostas if not r.correta]
+
+        # Monta o detalhe de cada pergunta errada (enunciado, resposta dada, resposta correta)
+        detalhes_erros = []
+        for resposta in respostas:
+            if resposta.correta:
+                continue
+
+            resultado_pergunta = await session.execute(
+                select(Pergunta).where(Pergunta.ordem == resposta.numero_pergunta)
+            )
+            pergunta = resultado_pergunta.scalar_one()
+            opcoes = json.loads(pergunta.opcoes)
+            letras = ["A", "B", "C", "D"]
+
+            texto_resposta_dada = opcoes[letras.index(resposta.resposta_escolhida)]
+            texto_resposta_correta = opcoes[letras.index(pergunta.resposta_correta)]
+
+            detalhes_erros.append({
+                "numero": resposta.numero_pergunta,
+                "enunciado": pergunta.enunciado,
+                "resposta_dada": texto_resposta_dada,
+                "resposta_correta": texto_resposta_correta,
+            })
 
     await interaction.response.edit_message(
         content=f"✅ Avaliação enviada! Você acertou {acertos}/{TOTAL_PERGUNTAS_PROVA} ({percentual}%). "
@@ -172,16 +196,19 @@ async def finalizar_avaliacao(interaction: discord.Interaction):
         view=None,
     )
 
-    # Envia para o canal de Aprovação/Reprovação
-
     canal = guild.get_channel(CANAIS["APROVAR_REPROVAR"])
     status_emoji = "✅ Apto para aprovação" if percentual >= NOTA_MINIMA_APROVACAO else "❌ Abaixo da nota mínima"
+    cor = discord.Color.green() if percentual >= NOTA_MINIMA_APROVACAO else discord.Color.red()
 
-    texto = (
-        f"**Resultado da Avaliação**\n"
-        f"Candidato: {candidato.mention} (`{candidato.id}`)\n"
-        f"Acertos: {acertos}/{TOTAL_PERGUNTAS_PROVA} ({percentual}%)\n"
-        f"Perguntas erradas: {respostas_erradas if respostas_erradas else 'Nenhuma'}\n"
-        f"Status: {status_emoji}"
-    )
-    await canal.send(texto, view=AprovacaoView(candidato_id=candidato.id, recrutamento_id=recrutamento.id))
+    await canal.send(view=AprovacaoView(
+        candidato=candidato, 
+        recrutamento_id=recrutamento.id,
+        nota=percentual, 
+        acertos=acertos, 
+        total=TOTAL_PERGUNTAS_PROVA,
+        respostas_erradas=respostas_erradas_ids, 
+        detalhes_erros=detalhes_erros,
+        status_emoji=status_emoji, 
+        guild=guild, 
+        cor=cor,
+    ))

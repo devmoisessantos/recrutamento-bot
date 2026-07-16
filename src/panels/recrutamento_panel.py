@@ -1,8 +1,8 @@
 import discord
 from src.config import LOGO_PATH
 from src.panels.selecionar_candidato import SelecionarCandidatoView
-
-class PainelRecrutamentoLayout(discord.ui.LayoutView):
+from src.utils.error_handling import LoggingViewMixin
+class PainelRecrutamentoLayout(LoggingViewMixin, discord.ui.LayoutView):
     action_row = discord.ui.ActionRow()
 
     container = discord.ui.Container(
@@ -79,7 +79,7 @@ class PainelRecrutamentoLayout(discord.ui.LayoutView):
             ephemeral=True,
         )
 
-class PainelRecrutamentoView(discord.ui.View):
+class PainelRecrutamentoView(LoggingViewMixin, discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)  # timeout=None = view persistente, nunca expira
 

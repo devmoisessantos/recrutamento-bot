@@ -8,7 +8,7 @@ class Base(DeclarativeBase):
 
 
 def agora() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.utcnow()  # antes: datetime.now(timezone.utc)
 
 
 class Usuario(Base):
@@ -28,6 +28,7 @@ class Recrutamento(Base):
     __tablename__ = "recrutamentos"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id_fivem: Mapped[str | None] = mapped_column(String(20), nullable=True)
     discord_id_candidato: Mapped[int] = mapped_column(ForeignKey("usuarios.discord_id"))
     discord_id_recrutador: Mapped[int] = mapped_column(Integer)
 
@@ -44,7 +45,6 @@ class Recrutamento(Base):
     nota_percentual: Mapped[float | None] = mapped_column(Float, nullable=True)
     acertos: Mapped[int | None] = mapped_column(Integer, nullable=True)
     cargo_final: Mapped[str | None] = mapped_column(String(30), nullable=True)  # ENFERMEIRO / PARAMEDICO
-
     candidato: Mapped["Usuario"] = relationship(back_populates="recrutamentos")
     respostas: Mapped[list["RespostaProva"]] = relationship(back_populates="recrutamento")
 
