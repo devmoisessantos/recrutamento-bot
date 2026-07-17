@@ -1,22 +1,15 @@
 import json
 import discord
 from datetime import datetime, timezone
-
 from sqlalchemy import select
+
 
 from src.config import CARGOS, CANAIS, TOTAL_PERGUNTAS_PROVA, NOTA_MINIMA_APROVACAO
 from src.database.connection import async_session
 from src.database.models import Recrutamento, Pergunta, RespostaProva
-from src.utils.logger import log_mudanca_cargo
+from src.utils.logger import log_cargo
 from src.utils.error_handling import LoggingViewMixin
 from src.panels.aprovacao_panel import AprovacaoView
-
-
-def barra_progresso(atual: int, total: int) -> str:
-    preenchido = "▰" * atual
-    vazio = "▱" * (total - atual)
-    return f"{preenchido}{vazio}  `{atual}/{total}`"
-
 
 async def iniciar_avaliacao(interaction: discord.Interaction):
     candidato = interaction.user
@@ -48,34 +41,42 @@ async def iniciar_avaliacao(interaction: discord.Interaction):
         recrutamento.formulario_aberto = True
         recrutamento.status = "EM_PROVA"
         recrutamento.pergunta_atual = 0
-        recrutamento.data_inicio_prova = datetime.utcnow()
+        recrutamento.data_inicio_prova = datetime.utcnow()  # antes: datetime.now(timezone.utc)
         await session.commit()
 
+    # Troca de cargo: Estudante -> Prova
     cargo_estudante = guild.get_role(CARGOS["ESTUDANTE"])
     cargo_prova = guild.get_role(CARGOS["PROVA"])
     await candidato.remove_roles(cargo_estudante, reason="Iniciou avaliação")
     await candidato.add_roles(cargo_prova, reason="Iniciou avaliação")
 
-    await log_mudanca_cargo(
-        guild, candidato=candidato, executor=guild.me,
-        cargos_removidos=[cargo_estudante.mention],
-        cargos_adicionados=[cargo_prova.mention],
+    # única resposta à interação
+    await interaction.response.send_message(
+        "# 📝┃📋・PROVA — CENTRO MÉDICO SUL VALLEY\n"
+        "> Leia com atenção. Algumas questões exigem interpretação.\n"
+        "> Responda corretamente às questões abaixo.\n"
+        "> Cada pergunta possui apenas 1 alternativa correta.\n\n"
+        "Avaliação iniciada! Você tem **1 hora** para concluir.",
+        ephemeral=True,
     )
+    await enviar_pergunta(interaction, numero=1)
 
-    view = await montar_view_pergunta(numero=1, guild=guild)
-    await interaction.response.send_message(view=view, ephemeral=True)
-
-
-async def montar_view_pergunta(numero: int, guild: discord.Guild) -> "PerguntaLayoutView":
+async def enviar_pergunta(interaction: discord.Interaction, numero: int):
     async with async_session() as session:
         resultado = await session.execute(select(Pergunta).where(Pergunta.ordem == numero))
-        pergunta = resultado.scalar_one()
+        pergunta = resultado.scalar_one_or_none()
 
-    return PerguntaLayoutView(numero=numero, pergunta=pergunta, guild=guild)
+    view = PerguntaView(numero=numero, pergunta=pergunta)
+    conteudo = f"## 📝 Pergunta {numero}/{TOTAL_PERGUNTAS_PROVA}\n\n{pergunta.enunciado}"
+
+    if interaction.response.is_done():
+        await interaction.edit_original_response(content=conteudo, view=view)
+    else:
+        await interaction.response.send_message(conteudo, view=view, ephemeral=True)
 
 
-class PerguntaLayoutView(LoggingViewMixin, discord.ui.LayoutView):
-    def __init__(self, numero: int, pergunta: Pergunta, guild: discord.Guild):
+class PerguntaView(LoggingViewMixin, discord.ui.View):
+    def __init__(self, numero: int, pergunta: Pergunta):
         super().__init__(timeout=None)
         self.numero = numero
         self.pergunta = pergunta
@@ -83,43 +84,19 @@ class PerguntaLayoutView(LoggingViewMixin, discord.ui.LayoutView):
         opcoes = json.loads(pergunta.opcoes)
         letras = ["A", "B", "C", "D"]
 
-        self.select = discord.ui.Select(
+        select = discord.ui.Select(
             placeholder="Escolha uma resposta...",
             options=[
                 discord.SelectOption(label=f"{letras[i]}) {texto}", value=letras[i])
                 for i, texto in enumerate(opcoes)
             ],
         )
-        self.select.callback = self.responder
+        select.callback = self.responder
+        self.add_item(select)
 
-        action_row = discord.ui.ActionRow()
-        action_row.add_item(self.select)
-
-        logo_url = guild.icon.url if guild.icon else None
-        cabecalho = discord.ui.Section(
-            "# 📋・PROVA — CENTRO MÉDICO SUL VALLEY\n\n",
-            (
-                "> Leia com atenção. Algumas questões exigem interpretação.\n"
-                "> Responda corretamente às questões abaixo.\n"
-                "> Cada pergunta possui apenas 1 alternativa correta.\n\n"
-                "Avaliação iniciada! Você tem **1 hora** para concluir."
-            ),
-            accessory=discord.ui.Thumbnail(logo_url) if logo_url else discord.ui.Thumbnail("attachment://logo.png"),
-        )
-        container = discord.ui.Container(
-            cabecalho,
-            discord.ui.Separator(spacing=discord.SeparatorSpacing.large),
-            discord.ui.TextDisplay(f"# 📝 Pergunta {numero}/{TOTAL_PERGUNTAS_PROVA}"),
-            discord.ui.TextDisplay(f"-# {barra_progresso(numero, TOTAL_PERGUNTAS_PROVA)}"),
-            discord.ui.Separator(spacing=discord.SeparatorSpacing.small),
-            discord.ui.TextDisplay(pergunta.enunciado),
-            action_row,
-            accent_color=discord.Color.gold(),
-        )
-        self.add_item(container)
 
     async def responder(self, interaction: discord.Interaction):
-        resposta = self.select.values[0]
+        resposta = interaction.data["values"][0]
         correta = resposta == self.pergunta.resposta_correta
 
         async with async_session() as session:
@@ -129,7 +106,7 @@ class PerguntaLayoutView(LoggingViewMixin, discord.ui.LayoutView):
                     Recrutamento.status == "EM_PROVA",
                 )
             )
-            recrutamento = resultado.scalar_one()
+            recrutamento = resultado.scalar_one_or_none()
 
             session.add(RespostaProva(
                 recrutamento_id=recrutamento.id,
@@ -141,34 +118,25 @@ class PerguntaLayoutView(LoggingViewMixin, discord.ui.LayoutView):
             await session.commit()
 
         if self.numero >= TOTAL_PERGUNTAS_PROVA:
-            await interaction.response.edit_message(view=EnviarQuestionarioView())
+            await mostrar_botao_enviar(interaction)
         else:
-            proxima_view = await montar_view_pergunta(numero=self.numero + 1, guild=interaction.guild)
-            await interaction.response.edit_message(view=proxima_view)
+            await enviar_pergunta(interaction, numero=self.numero + 1)
 
 
-class EnviarQuestionarioView(LoggingViewMixin, discord.ui.LayoutView):
-    def __init__(self):
-        super().__init__(timeout=None)
+async def mostrar_botao_enviar(interaction: discord.Interaction):
+    view = discord.ui.View(timeout=None)
+    botao = discord.ui.Button(label="Enviar Questionário", style=discord.ButtonStyle.success)
 
-        self.botao = discord.ui.Button(label="Enviar Questionário", style=discord.ButtonStyle.success)
-        self.botao.callback = self.enviar
+    async def enviar_callback(inter: discord.Interaction):
+        await finalizar_avaliacao(inter)
 
-        action_row = discord.ui.ActionRow()
-        action_row.add_item(self.botao)
+    botao.callback = enviar_callback
+    view.add_item(botao)
 
-        container = discord.ui.Container(
-            discord.ui.TextDisplay("# ✅ Questionário concluído"),
-            discord.ui.TextDisplay(f"-# {barra_progresso(TOTAL_PERGUNTAS_PROVA, TOTAL_PERGUNTAS_PROVA)}"),
-            discord.ui.Separator(spacing=discord.SeparatorSpacing.small),
-            discord.ui.TextDisplay("Você respondeu todas as perguntas. Clique abaixo para enviar sua avaliação."),
-            action_row,
-            accent_color=discord.Color.gold(),
-        )
-        self.add_item(container)
-
-    async def enviar(self, interaction: discord.Interaction):
-        await finalizar_avaliacao(interaction)
+    await interaction.response.edit_message(
+        content="Você respondeu todas as perguntas. Clique abaixo para enviar sua avaliação.",
+        view=view,
+    )
 
 
 async def finalizar_avaliacao(interaction: discord.Interaction):
@@ -199,6 +167,7 @@ async def finalizar_avaliacao(interaction: discord.Interaction):
 
         respostas_erradas_ids = [r.numero_pergunta for r in respostas if not r.correta]
 
+        # Monta o detalhe de cada pergunta errada (enunciado, resposta dada, resposta correta)
         detalhes_erros = []
         for resposta in respostas:
             if resposta.correta:
@@ -221,33 +190,25 @@ async def finalizar_avaliacao(interaction: discord.Interaction):
                 "resposta_correta": texto_resposta_correta,
             })
 
-    await interaction.response.edit_message(view=AvaliacaoEnviadaView(acertos, percentual))
-
+    await interaction.response.edit_message(
+        content=f"✅ Avaliação enviada! Você acertou {acertos}/{TOTAL_PERGUNTAS_PROVA} ({percentual}%). "
+                f"Aguarde a decisão do recrutador.",
+        view=None,
+    )
 
     canal = guild.get_channel(CANAIS["APROVAR_REPROVAR"])
     status_emoji = "✅ Apto para aprovação" if percentual >= NOTA_MINIMA_APROVACAO else "❌ Abaixo da nota mínima"
     cor = discord.Color.green() if percentual >= NOTA_MINIMA_APROVACAO else discord.Color.red()
 
-    view_resultado = AprovacaoView(
-        candidato=candidato, recrutamento_id=recrutamento.id,
-        nota=percentual, acertos=acertos, total=TOTAL_PERGUNTAS_PROVA,
-        respostas_erradas=respostas_erradas_ids, detalhes_erros=detalhes_erros,
-        status_emoji=status_emoji, guild=guild, cor=cor,
-    )
-    mensagem = await canal.send(view=view_resultado)
-    view_resultado.message = mensagem  # necessário para editar depois na aprovação/reprovação
-
-
-class AvaliacaoEnviadaView(discord.ui.LayoutView):
-    def __init__(self, acertos: int, percentual: float):
-        super().__init__(timeout=None)
-        container = discord.ui.Container(
-            discord.ui.TextDisplay("# ✅ Avaliação enviada!"),
-            discord.ui.Separator(spacing=discord.SeparatorSpacing.small),
-            discord.ui.TextDisplay(
-                f"Você acertou **{acertos}/{TOTAL_PERGUNTAS_PROVA}** (`{percentual}%`).\n"
-                f"Aguarde a decisão do recrutador."
-            ),
-            accent_color=discord.Color.blurple(),
-        )
-        self.add_item(container)
+    await canal.send(view=AprovacaoView(
+        candidato=candidato, 
+        recrutamento_id=recrutamento.id,
+        nota=percentual, 
+        acertos=acertos, 
+        total=TOTAL_PERGUNTAS_PROVA,
+        respostas_erradas=respostas_erradas_ids, 
+        detalhes_erros=detalhes_erros,
+        status_emoji=status_emoji, 
+        guild=guild, 
+        cor=cor,
+    ))
