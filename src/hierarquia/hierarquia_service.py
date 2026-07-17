@@ -4,7 +4,7 @@ from sqlalchemy import select
 from src.config import CARGOS, CARGOS_HIERARQUIA, CANAIS
 from src.database.connection import async_session
 from src.database.models import MensagemHierarquia
-from src.hierarquia.builder import montar_card_cargo
+from src.hierarquia.builder import montar_card_cargo, montar_cards_cargo_paginado
 
 
 def calcular_membros_por_cargo(guild: discord.Guild) -> dict[int, list[discord.Member]]:
@@ -17,11 +17,16 @@ def calcular_membros_por_cargo(guild: discord.Guild) -> dict[int, list[discord.M
         cargos_que_possui = [c for c in cargos_ordenados if c in membro.roles]
         if not cargos_que_possui:
             continue
-        cargo_mais_alto = max(cargos_que_possui, key=lambda c: c.position)
+
+        # 🔥 MUDANÇA CRUCIAL: Usa a posição na LISTA como referência
+        # Quanto menor o índice, mais alto o cargo
+        cargo_mais_alto = min(
+            cargos_que_possui, 
+            key=lambda c: cargos_ordenados.index(c)  # ← índice na lista = hierarquia
+        )
         resultado[cargo_mais_alto.id].append(membro)
 
     return resultado
-
 
 async def atualizar_hierarquia(guild: discord.Guild):
     canal = guild.get_channel(CANAIS["HIERARQUIA_SUL"])
@@ -31,13 +36,16 @@ async def atualizar_hierarquia(guild: discord.Guild):
 
     membros_por_cargo = calcular_membros_por_cargo(guild)
 
+
     for nome_cargo in CARGOS_HIERARQUIA:
         cargo = guild.get_role(CARGOS[nome_cargo])
         if cargo is None:
             continue  # cargo foi apagado do servidor, pula
 
         membros = membros_por_cargo.get(cargo.id, [])
-        card = montar_card_cargo(cargo, membros)
+
+        # Gera os cards paginados
+        cards = montar_cards_cargo_paginado(cargo, membros)
 
         async with async_session() as session:
             resultado = await session.execute(
@@ -53,8 +61,8 @@ async def atualizar_hierarquia(guild: discord.Guild):
                 except discord.NotFound:
                     pass  # mensagem foi apagada manualmente, vamos criar uma nova abaixo
 
-            # Cria uma mensagem nova (primeira vez, ou porque a antiga sumiu)
-            nova_mensagem = await canal.send(view=_embrulhar_em_view(card))
+            # Cria nova mensagem (só com o primeiro card)
+            nova_mensagem = await canal.send(view=_embrulhar_em_view(cards[0]))
 
             if registro is not None:
                 registro.canal_id = canal.id
@@ -66,9 +74,10 @@ async def atualizar_hierarquia(guild: discord.Guild):
 
             await session.commit()
 
-
 def _embrulhar_em_view(container: discord.ui.Container) -> discord.ui.LayoutView:
     """Container sozinho não pode ser enviado direto — precisa estar dentro de uma LayoutView."""
     view = discord.ui.LayoutView(timeout=None)
     view.add_item(container)
     return view
+
+
