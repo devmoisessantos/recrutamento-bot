@@ -27,6 +27,8 @@ class RecrutamentoBot(commands.Bot):
         await self.load_extension("src.cogs.liberar_prova")
         await self.load_extension("src.cogs.aprovar")
         await self.load_extension("src.cogs.reprovar")
+        await self.load_extension("src.cogs.hierarquia")
+        await self.load_extension("src.hierarquia.listener")
 
         guild = discord.Object(id=GUILD_ID)
         self.tree.copy_global_to(guild=guild)

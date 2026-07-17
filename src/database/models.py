@@ -90,3 +90,12 @@ class PainelPostado(Base):
     nome_painel: Mapped[str] = mapped_column(String(50), unique=True)
     canal_id: Mapped[int] = mapped_column(Integer)
     message_id: Mapped[int] = mapped_column(Integer)
+
+
+class MensagemHierarquia(Base):
+    __tablename__ = "mensagens_hierarquia"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    cargo_id: Mapped[int] = mapped_column(Integer, unique=True)
+    canal_id: Mapped[int] = mapped_column(Integer)
+    message_id: Mapped[int] = mapped_column(Integer)

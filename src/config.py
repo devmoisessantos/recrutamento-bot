@@ -47,6 +47,41 @@ CARGOS = {
 
 }
 
+CARGOS_HIERARQUIA = [
+    "Supervisor NW",
+    "Responsavel HP",
+    "👑 Responsável Geral",
+    "Diretor Geral",
+    "Vice Diretor Geral",
+    "🔍・Corregedoria",
+    "👑・DIRETOR",
+    "Vice Diretor",
+    "Supervisor",
+    "👑・Responsável Destaque・👑",
+    "👑・Responsável Instrutor・🎓",
+    "👑・Responsável Recrutamento・🎯",
+    "👑・Responsável Psicólogo・🧠",
+    "👑・Responsável Doutor・🥼",
+    "🥼・Instrutor",
+    "🚑・Instrutor Resgate",
+    "✈️・Recrutador",
+    "🩺・Psicólogo",
+    "🥼・Doutor",
+    "🚑・Paramédico",
+    "🔰・Enfermeiro (a)",
+]
+
+HIERARQUIA_GATE = [
+
+    "👑・【 GATE 】 COMANDANTE・TÁTICO",
+    "👑・【 GATE 】SUBCOMANDANTE・TÁTICO",
+    "🛡️・【 GATE 】COORDENADOR・TÁTICO",   
+    "🛡️・【 GATE 】CAPITÃO",
+    "⚔️・【 GATE 】OPERADOR",    
+    "⚔️・【 GATE 】GUARDIÃO"
+]
+
+
 # Hierarquia: define quem pode conceder cargos a algum usuário.
 HIERARQUIA_CONCESSAO = {
 
@@ -90,7 +125,7 @@ TEMPO_LIMITE_PROVA_MINUTOS = 60
 NOTA_MINIMA_APROVACAO = 70
     
 CANAIS = {
-
+    "HIERARQUIA_SUL": 1487250788391583745,
     "MATERIAL_ESTUDO": 1486369061507043348,
     "AVALIACAO": 1486369066091282623,
     "APROVAR_REPROVAR": 1526595318974517340,
