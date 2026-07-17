@@ -56,7 +56,7 @@ async def atualizar_hierarquia(guild: discord.Guild):
             if registro is not None:
                 try:
                     mensagem = await canal.fetch_message(registro.message_id)
-                    await mensagem.edit(view=_embrulhar_em_view(card))
+                    await mensagem.edit(view=_embrulhar_em_view(cards))
                     continue  # sucesso, vai pro próximo cargo
                 except discord.NotFound:
                     pass  # mensagem foi apagada manualmente, vamos criar uma nova abaixo
