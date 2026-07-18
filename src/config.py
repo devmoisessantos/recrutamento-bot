@@ -49,7 +49,7 @@ CARGOS = {
 }
 
 CARGOS_HIERARQUIA = [
-    "Supervisor NW",
+    
     "Responsavel HP",
     "👑 Responsável Geral",
     "Diretor Geral",

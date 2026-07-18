@@ -26,7 +26,7 @@ async def iniciar_avaliacao(interaction: discord.Interaction):
         resultado = await session.execute(
             select(Recrutamento).where(
                 Recrutamento.discord_id_candidato == candidato.id,
-                Recrutamento.status == "ESTUDANDO",
+                Recrutamento.status == "PROVA_LIBERADA",  # <-- antes era "ESTUDANDO"
             )
         )
         recrutamento = resultado.scalar_one_or_none()
@@ -51,19 +51,11 @@ async def iniciar_avaliacao(interaction: discord.Interaction):
         recrutamento.data_inicio_prova = datetime.utcnow()
         await session.commit()
 
-    cargo_estudante = guild.get_role(CARGOS["ESTUDANTE"])
-    cargo_prova = guild.get_role(CARGOS["PROVA"])
-    await candidato.remove_roles(cargo_estudante, reason="Iniciou avaliação")
-    await candidato.add_roles(cargo_prova, reason="Iniciou avaliação")
 
-    await log_mudanca_cargo(
-        guild, candidato=candidato, executor=guild.me,
-        cargos_removidos=[cargo_estudante.mention],
-        cargos_adicionados=[cargo_prova.mention],
-    )
-
+    # 👇 NÃO troca mais cargo aqui — já foi trocado na liberação
     view = await montar_view_pergunta(numero=1, guild=guild)
     await interaction.response.send_message(view=view, ephemeral=True)
+
 
 
 async def montar_view_pergunta(numero: int, guild: discord.Guild) -> "PerguntaLayoutView":

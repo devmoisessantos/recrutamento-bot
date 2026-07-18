@@ -79,34 +79,12 @@ class PainelRecrutamentoLayout(LoggingViewMixin, discord.ui.LayoutView):
             ephemeral=True,
         )
 
-class PainelRecrutamentoView(LoggingViewMixin, discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)  # timeout=None = view persistente, nunca expira
-
-    @discord.ui.button(
-        label="Iniciar Recrutamento", 
-        style=discord.ButtonStyle.green, 
-        custom_id="painel:iniciar_recrutamento"
+    @action_row.button(
+        label="Liberar Avaliação",
+        style=discord.ButtonStyle.danger,
+        emoji="🔓",
+        custom_id="painel:liberar_avaliacao",
     )
-
-    @discord.ui.button(
-        label="Liberar Prova", 
-        style=discord.ButtonStyle.blurple, 
-        custom_id="painel:liberar_prova"
-    )
-    async def liberar_prova(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "Use `/liberar-prova @membro`.", ephemeral=True
-        )
-
-    @discord.ui.button(label="Aprovar", style=discord.ButtonStyle.success, custom_id="painel:aprovar")
-    async def aprovar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "Use `/aprovar @membro`.", ephemeral=True
-        )
-
-    @discord.ui.button(label="Reprovar", style=discord.ButtonStyle.danger, custom_id="painel:reprovar")
-    async def reprovar(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            "Use `/reprovar @membro`.", ephemeral=True
-        )
+    async def liberar_avaliacao(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from src.services.liberacao_service import liberar_avaliacao_click
+        await liberar_avaliacao_click(interaction)

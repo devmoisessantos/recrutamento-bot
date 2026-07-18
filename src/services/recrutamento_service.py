@@ -33,7 +33,7 @@ async def validar_e_iniciar_recrutamento(
         return
 
     if cargo_hp in candidato.roles or cargo_aprovado in candidato.roles:
-        await interaction.response.send_message(
+        await interaction.followup.send(
             "❌ Este membro já foi aprovado anteriormente.", ephemeral=True
         )
         return

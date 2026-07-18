@@ -34,3 +34,5 @@ class PainelAvaliacaoLayout(LoggingViewMixin, discord.ui.LayoutView):
     async def iniciar_avaliacao(self, interaction: discord.Interaction, button: discord.ui.Button):
         from src.services.avaliacao_service import iniciar_avaliacao
         await iniciar_avaliacao(interaction)
+
+
