@@ -29,6 +29,7 @@ CARGOS = {
     "👑・Responsável Instrutor・🎓": 1486368758363586592,
     "👑・Responsável Recrutamento・🎯": 1486368757440970803,
     "👑・Responsável Destaque・👑": 1496398147642069063,
+    "GATE | CMS・Valley": 1515898748763508907,
     "⚔️・【 GATE 】GUARDIÃO": 1515670358261497906,
     "⚔️・【 GATE 】OPERADOR": 1515670175125475469,    
     "🛡️・【 GATE 】CAPITÃO": 1515670028999983175,
