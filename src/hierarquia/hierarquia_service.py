@@ -17,6 +17,13 @@ def calcular_membros_por_cargo(guild: discord.Guild) -> dict[int, list[discord.M
     membros_ignorados = 0
 
     for membro in guild.members:
+        todos_cargos_ids = {role.id for role in membro.roles}
+        cargos_hierarquia_ids = {cargo.id for cargo in cargos_ordenados}
+        cargos_fora_hierarquia = todos_cargos_ids - cargos_hierarquia_ids
+        
+        if cargos_fora_hierarquia:
+            continue
+
         cargos_que_possui = [c for c in cargos_ordenados if c in membro.roles]
         if not cargos_que_possui:
             membros_ignorados += 1
