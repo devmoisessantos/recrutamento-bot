@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy import UniqueConstraint 
 
 
 class Base(DeclarativeBase):
@@ -96,6 +97,10 @@ class MensagemHierarquia(Base):
     __tablename__ = "mensagens_hierarquia"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    cargo_id: Mapped[int] = mapped_column(Integer, unique=True)
+    cargo_id: Mapped[int] = mapped_column(Integer)
+    pagina: Mapped[int] = mapped_column(Integer, default=1)  # ← NOVO
     canal_id: Mapped[int] = mapped_column(Integer)
     message_id: Mapped[int] = mapped_column(Integer)
+    
+    # 🔥 Nova constraint: um cargo não pode ter duas mensagens com a mesma página
+    __table_args__ = (UniqueConstraint('cargo_id', 'pagina'),)

@@ -16,8 +16,11 @@ class HierarquiaListener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
-        # Filtro: só reage se os cargos mudaram
-        if set(before.roles) == set(after.roles):
+        # Filtro: compara IDs dos cargos, não os objetos
+        before_role_ids = {role.id for role in before.roles}
+        after_role_ids = {role.id for role in after.roles}
+        
+        if before_role_ids == after_role_ids:
             return
         
         # Se já tem uma atualização agendada, cancela e agenda de novo
@@ -26,7 +29,8 @@ class HierarquiaListener(commands.Cog):
         
         # Agenda a atualização com delay
         self._task = asyncio.create_task(self._atualizar_com_delay(after.guild))
-    
+
+
     async def _atualizar_com_delay(self, guild: discord.Guild):
         try:
             # Espera o delay

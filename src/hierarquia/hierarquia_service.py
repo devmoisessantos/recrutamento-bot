@@ -12,21 +12,25 @@ def calcular_membros_por_cargo(guild: discord.Guild) -> dict[int, list[discord.M
     cargos_ordenados = [c for c in cargos_ordenados if c is not None]
 
     resultado: dict[int, list[discord.Member]] = {cargo.id: [] for cargo in cargos_ordenados}
+    
+    # 🔥 DEBUG: Conta membros ignorados
+    membros_ignorados = 0
 
     for membro in guild.members:
         cargos_que_possui = [c for c in cargos_ordenados if c in membro.roles]
         if not cargos_que_possui:
+            membros_ignorados += 1
             continue
 
-        # 🔥 MUDANÇA CRUCIAL: Usa a posição na LISTA como referência
-        # Quanto menor o índice, mais alto o cargo
         cargo_mais_alto = min(
             cargos_que_possui, 
-            key=lambda c: cargos_ordenados.index(c)  # ← índice na lista = hierarquia
+            key=lambda c: cargos_ordenados.index(c)
         )
         resultado[cargo_mais_alto.id].append(membro)
-
+    
+    print(f"📊 Membros ignorados (sem cargos na hierarquia): {membros_ignorados}")
     return resultado
+
 
 async def atualizar_hierarquia(guild: discord.Guild):
     canal = guild.get_channel(CANAIS["HIERARQUIA_SUL"])
@@ -36,43 +40,70 @@ async def atualizar_hierarquia(guild: discord.Guild):
 
     membros_por_cargo = calcular_membros_por_cargo(guild)
 
-
     for nome_cargo in CARGOS_HIERARQUIA:
         cargo = guild.get_role(CARGOS[nome_cargo])
         if cargo is None:
-            continue  # cargo foi apagado do servidor, pula
+            continue
 
         membros = membros_por_cargo.get(cargo.id, [])
-
-        # Gera os cards paginados
         cards = montar_cards_cargo_paginado(cargo, membros)
 
         async with async_session() as session:
+            # Busca TODAS as mensagens deste cargo
             resultado = await session.execute(
-                select(MensagemHierarquia).where(MensagemHierarquia.cargo_id == cargo.id)
+                select(MensagemHierarquia)
+                .where(MensagemHierarquia.cargo_id == cargo.id)
+                .order_by(MensagemHierarquia.pagina)
             )
-            registro = resultado.scalar_one_or_none()
-
-            if registro is not None:
-                try:
-                    mensagem = await canal.fetch_message(registro.message_id)
-                    await mensagem.edit(view=_embrulhar_em_view(cards))
-                    continue  # sucesso, vai pro próximo cargo
-                except discord.NotFound:
-                    pass  # mensagem foi apagada manualmente, vamos criar uma nova abaixo
-
-            # Cria nova mensagem (só com o primeiro card)
-            nova_mensagem = await canal.send(view=_embrulhar_em_view(cards[0]))
-
-            if registro is not None:
-                registro.canal_id = canal.id
-                registro.message_id = nova_mensagem.id
-            else:
+            registros = resultado.scalars().all()
+            
+            # Se existem registros, edita as mensagens existentes
+            if registros:
+                for i, registro in enumerate(registros):
+                    if i >= len(cards):
+                        # Se tem mais registros que cards, apaga o excesso
+                        try:
+                            msg = await canal.fetch_message(registro.message_id)
+                            await msg.delete()
+                        except:
+                            pass
+                        await session.delete(registro)
+                        continue
+                    
+                    try:
+                        msg = await canal.fetch_message(registro.message_id)
+                        await msg.edit(view=_embrulhar_em_view(cards[i]))
+                    except discord.NotFound:
+                        # Mensagem foi apagada, cria nova
+                        nova_msg = await canal.send(view=_embrulhar_em_view(cards[i]))
+                        registro.message_id = nova_msg.id
+                        registro.canal_id = canal.id
+                
+                # Se tem mais cards que registros, cria os novos
+                for i in range(len(registros), len(cards)):
+                    nova_msg = await canal.send(view=_embrulhar_em_view(cards[i]))
+                    session.add(MensagemHierarquia(
+                        cargo_id=cargo.id,
+                        pagina=i + 1,
+                        canal_id=canal.id,
+                        message_id=nova_msg.id
+                    ))
+                
+                await session.commit()
+                continue  # Vai para o próximo cargo
+            
+            # Não existem registros, cria tudo do zero
+            for i, card in enumerate(cards):
+                nova_msg = await canal.send(view=_embrulhar_em_view(card))
                 session.add(MensagemHierarquia(
-                    cargo_id=cargo.id, canal_id=canal.id, message_id=nova_mensagem.id
+                    cargo_id=cargo.id,
+                    pagina=i + 1,
+                    canal_id=canal.id,
+                    message_id=nova_msg.id
                 ))
-
+            
             await session.commit()
+
 
 def _embrulhar_em_view(container: discord.ui.Container) -> discord.ui.LayoutView:
     """Container sozinho não pode ser enviado direto — precisa estar dentro de uma LayoutView."""
