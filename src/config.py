@@ -71,6 +71,10 @@ CARGOS_HIERARQUIA = [
     "🔰・Enfermeiro (a)",
 ]
 
+CARGOS_EXCLUIR_HIERARQUIA = [
+    "GATE | CMS・Valley",
+]
+
 HIERARQUIA_GATE = [
 
     "👑・【 GATE 】 COMANDANTE・TÁTICO",

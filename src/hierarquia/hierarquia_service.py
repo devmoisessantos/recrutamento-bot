@@ -7,34 +7,30 @@ from src.database.models import MensagemHierarquia
 from src.hierarquia.builder import montar_card_cargo, montar_cards_cargo_paginado
 
 
+from src.config import CARGOS, CARGOS_HIERARQUIA, CARGOS_EXCLUIR_HIERARQUIA
+
+
 def calcular_membros_por_cargo(guild: discord.Guild) -> dict[int, list[discord.Member]]:
     cargos_ordenados = [guild.get_role(CARGOS[nome]) for nome in CARGOS_HIERARQUIA]
     cargos_ordenados = [c for c in cargos_ordenados if c is not None]
 
+    cargos_excluidos = [guild.get_role(CARGOS[nome]) for nome in CARGOS_EXCLUIR_HIERARQUIA]
+    cargos_excluidos = [c for c in cargos_excluidos if c is not None]
+
     resultado: dict[int, list[discord.Member]] = {cargo.id: [] for cargo in cargos_ordenados}
-    
-    # 🔥 DEBUG: Conta membros ignorados
-    membros_ignorados = 0
 
     for membro in guild.members:
-        todos_cargos_ids = {role.id for role in membro.roles}
-        cargos_hierarquia_ids = {cargo.id for cargo in cargos_ordenados}
-        cargos_fora_hierarquia = todos_cargos_ids - cargos_hierarquia_ids
-
-        if cargos_fora_hierarquia:
+        # Se o membro tiver qualquer cargo da lista de exclusão, ele é ignorado por completo
+        if any(cargo in membro.roles for cargo in cargos_excluidos):
             continue
 
         cargos_que_possui = [c for c in cargos_ordenados if c in membro.roles]
         if not cargos_que_possui:
             continue
 
-        cargo_mais_alto = min(
-            cargos_que_possui, 
-            key=lambda c: cargos_ordenados.index(c)
-        )
+        cargo_mais_alto = min(cargos_que_possui, key=lambda c: cargos_ordenados.index(c))
         resultado[cargo_mais_alto.id].append(membro)
-    
-    print(f"📊 Membros ignorados (sem cargos na hierarquia): {membros_ignorados}")
+
     return resultado
 
 
