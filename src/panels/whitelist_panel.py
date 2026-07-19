@@ -44,8 +44,9 @@ class PainelWhitelistLayout(LoggingViewMixin, discord.ui.LayoutView):
                 (
 
                     "- Conecte-se à cidade primeiro e tenha sua identificação em mãos.\n"
-                    "- As informações solicitadas são encontradas pressionando `F11` dentro do FiveM, já conectado na cidade.\n"
-                    "**Elas NÃO são informações da sua conta do Discord ou de fora do jogo.**\n"
+                    "- As informações solicitadas são encontradas pressionando `F11` dentro do FiveM.\n" 
+                    "( Já conectado na cidade. )\n"
+                    "- **Elas NÃO são informações da sua conta do Discord ou de fora do jogo.**\n"
                     "- Clique no botão abaixo para informar sua identidade.\n"
                     "- Após a validação, o sistema liberará seu acesso e ajustará seus cargos automaticamente."
                 ),
