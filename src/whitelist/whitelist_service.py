@@ -6,13 +6,39 @@ from src.utils.logger import log_mudanca_cargo
 from src.utils.log_container import LogContainerView
 
 
-def _aplicar_apelido(candidato: discord.Member, id_fivem: str) -> str:
-    """Monta o apelido no formato 'Username | idFivem', respeitando o limite de 32 caracteres."""
-    nome_base = candidato.name
-    nome_capitalizado = nome_base[:1].upper() + nome_base[1:]
+
+def _aplicar_apelido(candidato: discord.Member, nome: str, sobrenome: str, id_fivem: str) -> str:
+    """
+    Monta o apelido no formato 'Nome S. | idFivem' ou 'Nome Sobrenome | idFivem'
+    respeitando o limite de 32 caracteres.
+    
+    Regras:
+    - Se o nome completo (nome + sobrenome) + sufixo for <= 32, usa completo
+    - Se for > 32, abrevia o sobrenome para a primeira letra + ponto
+    - Se ainda assim for > 32, trunca o nome
+    """
     sufixo = f" | {id_fivem}"
-    limite_nome = 32 - len(sufixo)
-    return f"{nome_capitalizado[:limite_nome]}{sufixo}"
+    limite_total = 32 - len(sufixo)  # Espaço disponível para nome e sobrenome
+    
+    # Capitaliza o nome e sobrenome
+    nome_capitalizado = nome[:1].upper() + nome[1:].lower() if nome else ""
+    sobrenome_capitalizado = sobrenome[:1].upper() + sobrenome[1:].lower() if sobrenome else ""
+    
+    # Tenta usar nome completo primeiro
+    nome_completo = f"{nome_capitalizado} {sobrenome_capitalizado}"
+    
+    if len(nome_completo) <= limite_total:
+        return f"{nome_completo}{sufixo}"
+    
+    # Se passou do limite, abrevia o sobrenome
+    nome_abreviado = f"{nome_capitalizado} {sobrenome_capitalizado[:1]}."
+    
+    if len(nome_abreviado) <= limite_total:
+        return f"{nome_abreviado}{sufixo}"
+    
+    # Se ainda passou, trunca o nome
+    nome_truncado = nome_abreviado[:limite_total]
+    return f"{nome_truncado}{sufixo}"
 
 
 def _formatar_telefone(telefone: str) -> str:
@@ -51,15 +77,26 @@ async def processar_whitelist(interaction: discord.Interaction, *, nome: str, so
         return
 
     telefone_formatado = _formatar_telefone(telefone)
-    novo_apelido = _aplicar_apelido(candidato, id_fivem)
+    # 🔥 Aplica o apelido com nome e sobrenome
+    apelido = _aplicar_apelido(
+        candidato=candidato,
+        nome=nome,
+        sobrenome=sobrenome,
+        id_fivem=id_fivem
+    )
+    
+    # 🔥 Tenta aplicar o apelido e guarda o resultado
+    apelido_aplicado = False
+    try:
+        await candidato.edit(nick=apelido)
+        apelido_aplicado = True
+    except discord.Forbidden:
+        print(f"❌ Sem permissão para alterar apelido de {candidato.name}")
+    except Exception as e:
+        print(f"❌ Erro ao aplicar apelido: {e}")
 
     await candidato.add_roles(cargo_visitante, reason="Whitelist concluída")
 
-    apelido_aplicado = True
-    try:
-        await candidato.edit(nick=novo_apelido)
-    except discord.Forbidden:
-        apelido_aplicado = False
 
     await log_mudanca_cargo(
         guild, candidato=candidato, executor=guild.me,
@@ -67,10 +104,16 @@ async def processar_whitelist(interaction: discord.Interaction, *, nome: str, so
     )
 
     await _enviar_log_whitelist(
-        guild, candidato=candidato, nome=nome, sobrenome=sobrenome,
-        idade=idade, telefone=telefone_formatado, id_fivem=id_fivem,
-        cargo_visitante=cargo_visitante, apelido=novo_apelido,
-        apelido_aplicado=apelido_aplicado,
+        guild, 
+        candidato=candidato, 
+        nome=nome, 
+        sobrenome=sobrenome,
+        idade=idade, 
+        telefone=telefone_formatado, 
+        id_fivem=id_fivem,
+        cargo_visitante=cargo_visitante, 
+        apelido=apelido,
+        apelido_aplicado=apelido_aplicado,  # ✅ Adicionado
     )
 
     await interaction.followup.send(
