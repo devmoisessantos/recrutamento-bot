@@ -69,8 +69,8 @@ class PainelWhitelistLayout(LoggingViewMixin, discord.ui.LayoutView):
 
 
 
-async def identificar(self, interaction: discord.Interaction):
-    await interaction.response.send_modal(ModalWhitelist())
+    async def identificar(self, interaction: discord.Interaction):
+        await interaction.response.send_modal(ModalWhitelist())
 
 
 class ModalWhitelist(LoggingModalMixin, discord.ui.Modal, title="Whitelist - Identificação"):
