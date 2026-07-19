@@ -8,7 +8,7 @@ from src.panels.recrutamento_panel import PainelRecrutamentoLayout
 from src.panels.avaliacao_panel import PainelAvaliacaoLayout
 from src.panels.whitelist_panel import PainelWhitelistLayout 
 
-async def garantir_painel_whitelist(bot: discord.Client, interaction: discord.Interaction):
+async def garantir_painel_whitelist(bot: discord.Client, interaction: discord.Interaction = None):
     async with async_session() as session:
         resultado = await session.execute(
             select(PainelPostado).where(PainelPostado.nome_painel == "whitelist")
