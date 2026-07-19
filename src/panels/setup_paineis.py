@@ -1,7 +1,7 @@
 import discord
 from sqlalchemy import select
 
-from src.config import CANAL_PAINEL_RECRUTAMENTO_ID, LOGO_PATH, CANAIS
+from src.config import CANAL_PAINEL_RECRUTAMENTO_ID, LOGO_PATH, CANAIS, GUILD_ID
 from src.database.connection import async_session
 from src.database.models import PainelPostado
 from src.panels.recrutamento_panel import PainelRecrutamentoLayout
@@ -23,7 +23,19 @@ async def garantir_painel_whitelist(bot: discord.Client, interaction: discord.In
         if registro is not None:    # ---> Caso já tenha sido postado, não duplicar.
             return
         
-        mensagem = await canal.send(view=PainelWhitelistLayout(interaction))
+        # 🔥 CORREÇÃO: Obtém o guild do bot ou do interaction
+        if interaction and interaction.guild:
+            guild = interaction.guild
+        else:
+            # Se não tem interaction, pega do bot
+            guild = bot.get_guild(GUILD_ID)  # Use seu GUILD_ID da config
+            
+        if guild is None:
+            print("❌ Guild não encontrada!")
+            return
+        
+        # 🔥 CORREÇÃO: Passa o guild, não o interaction
+        mensagem = await canal.send(view=PainelWhitelistLayout(guild))
 
         novo_registro = PainelPostado(
             nome_painel="whitelist",
