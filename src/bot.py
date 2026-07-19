@@ -42,7 +42,7 @@ class RecrutamentoBot(commands.Bot):
 
         self.painel_recrutamento_view = PainelRecrutamentoLayout()
         self.painel_avaliacao_view = PainelAvaliacaoLayout()
-        self.painel_whitelist_view = PainelWhitelistLayout()
+        self.painel_whitelist_view = PainelWhitelistLayout(guild)
 
         self.add_view(self.painel_recrutamento_view)
         self.add_view(self.painel_avaliacao_view)
