@@ -33,14 +33,12 @@ class RecrutamentoBot(commands.Bot):
         await self.load_extension("src.hierarquia.listener")
 
         guild_object = discord.Object(id=GUILD_ID)
-        guild = self.get_guild(GUILD_ID)
         self.tree.copy_global_to(guild=guild_object)
         await self.tree.sync(guild=guild_object)
         logger.info(f"Comandos de barra sincronizados com o servidor (ID: {GUILD_ID})")
 
         await init_db()
         await seed_perguntas_se_vazio()
-
 
         # Inicializa como None - serão criados no on_ready
         self.painel_recrutamento_view = None
@@ -72,17 +70,22 @@ class RecrutamentoBot(commands.Bot):
         else:
             logger.warning("Não foi possível encontrar o servidor com o ID fornecido.")
 
-        self.add_view(self.painel_recrutamento_view)
-        self.add_view(self.painel_avaliacao_view)
-        self.add_view(self.painel_whitelist_view)
 
+        # 🔥 PRIMEIRO: Cria os painéis
         self.painel_recrutamento_view = PainelRecrutamentoLayout()
         self.painel_avaliacao_view = PainelAvaliacaoLayout()
         self.painel_whitelist_view = PainelWhitelistLayout(guild)
 
+        # 🔥 DEPOIS: Adiciona as views persistentes
+        self.add_view(self.painel_recrutamento_view)
+        self.add_view(self.painel_avaliacao_view)
+        self.add_view(self.painel_whitelist_view)
+
+        # 🔥 POR ÚLTIMO: Garante que os painéis estão nos canais corretos
         await garantir_painel_recrutamento(self)
         await garantir_painel_avaliacao(self)
         await garantir_painel_whitelist(self)
+
 
 bot = RecrutamentoBot()
 
