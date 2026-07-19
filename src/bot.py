@@ -5,11 +5,12 @@ from discord.ext import commands
 
 from src.panels.avaliacao_panel import PainelAvaliacaoLayout
 from src.panels.recrutamento_panel import PainelRecrutamentoLayout
+from src.panels.whitelist_panel import PainelWhitelistLayout
 from src.database.connection import init_db
 from src.database.seed_perguntas import seed_perguntas_se_vazio
 
 from src.config import DISCORD_TOKEN, GUILD_ID, CANAIS
-from src.panels.setup_paineis import garantir_painel_recrutamento, garantir_painel_avaliacao
+from src.panels.setup_paineis import garantir_painel_recrutamento, garantir_painel_avaliacao, garantir_painel_whitelist
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("recrutamento-bot")
@@ -27,6 +28,7 @@ class RecrutamentoBot(commands.Bot):
         await self.load_extension("src.cogs.liberar_prova")
         await self.load_extension("src.cogs.aprovar")
         await self.load_extension("src.cogs.reprovar")
+        await self.load_extension("src.cogs.whitelist")
         await self.load_extension("src.cogs.hierarquia")
         await self.load_extension("src.hierarquia.listener")
 
@@ -40,9 +42,11 @@ class RecrutamentoBot(commands.Bot):
 
         self.painel_recrutamento_view = PainelRecrutamentoLayout()
         self.painel_avaliacao_view = PainelAvaliacaoLayout()
+        self.painel_whitelist_view = PainelWhitelistLayout()
 
         self.add_view(self.painel_recrutamento_view)
         self.add_view(self.painel_avaliacao_view)
+        self.add_view(self.painel_whitelist_view)
         # ... resto igual
 
 
@@ -63,8 +67,11 @@ class RecrutamentoBot(commands.Bot):
     async def on_ready(self):
         logger.info(f"Bot conectado como {self.user} (ID: {self.user.id})")
         guild = self.get_guild(int(GUILD_ID))
+
         await garantir_painel_recrutamento(self)
         await garantir_painel_avaliacao(self)
+        await garantir_painel_whitelist(self)
+
         if guild:
             logger.info(f"Conectado ao servidor: {guild.name} (ID: {guild.id})")
         else:

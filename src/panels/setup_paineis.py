@@ -6,6 +6,32 @@ from src.database.connection import async_session
 from src.database.models import PainelPostado
 from src.panels.recrutamento_panel import PainelRecrutamentoLayout
 from src.panels.avaliacao_panel import PainelAvaliacaoLayout
+from src.panels.whitelist_panel import PainelWhitelistLayout 
+
+async def garantir_painel_whitelist(bot: discord.Client, interaction: discord.Interaction):
+    async with async_session() as session:
+        resultado = await session.execute(
+            select(PainelPostado).where(PainelPostado.nome_painel == "whitelist")
+        )
+        registro = resultado.scalar_one_or_none()
+        
+        canal = bot.get_channel(CANAIS["WHITELIST_CANAL_ID"])
+        if canal is None:
+            print("Canal de WhiteList não foi encontrado ou definido.")
+            return
+
+        if registro is not None:    # ---> Caso já tenha sido postado, não duplicar.
+            return
+        
+        mensagem = await canal.send(view=PainelWhitelistLayout(interaction))
+
+        novo_registro = PainelPostado(
+            nome_painel="whitelist",
+            canal_id=canal.id,
+            message_id=mensagem.id,
+        )
+        session.add(novo_registro)
+        await session.commit()
 
 
 async def garantir_painel_recrutamento(bot: discord.Client):
