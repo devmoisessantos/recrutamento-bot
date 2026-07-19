@@ -32,9 +32,10 @@ class RecrutamentoBot(commands.Bot):
         await self.load_extension("src.cogs.hierarquia")
         await self.load_extension("src.hierarquia.listener")
 
-        guild = discord.Object(id=GUILD_ID)
-        self.tree.copy_global_to(guild=guild)
-        await self.tree.sync(guild=guild)
+        guild_object = discord.Object(id=GUILD_ID)
+        guild = self.get_guild(GUILD_ID)
+        self.tree.copy_global_to(guild=guild_object)
+        await self.tree.sync(guild=guild_object)
         logger.info(f"Comandos de barra sincronizados com o servidor (ID: {GUILD_ID})")
 
         await init_db()
