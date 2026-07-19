@@ -5,7 +5,7 @@ from src.utils.error_handling import LoggingViewMixin, LoggingModalMixin
 from src.whitelist.whitelist_service import processar_whitelist
 
 class PainelWhitelistLayout(LoggingViewMixin, discord.ui.LayoutView):
-    def __init__(self, guild_icon):
+    def __init__(self, guild: discord.Guild):
         super().__init__(timeout=None)
         self.action_row = discord.ui.ActionRow()
 
@@ -18,7 +18,7 @@ class PainelWhitelistLayout(LoggingViewMixin, discord.ui.LayoutView):
         self.botao_identificar.callback = self.identificar
         self.action_row.add_item(self.botao_identificar)
 
-        icon_url = guild_icon.url if guild_icon else None
+        icon_url = guild.icon.url if guild.icon else None
 
         self.container = discord.ui.Container(
             # ────────────────────────────────────────────────
