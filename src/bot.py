@@ -41,14 +41,11 @@ class RecrutamentoBot(commands.Bot):
         await init_db()
         await seed_perguntas_se_vazio()
 
-        self.painel_recrutamento_view = PainelRecrutamentoLayout()
-        self.painel_avaliacao_view = PainelAvaliacaoLayout()
-        self.painel_whitelist_view = PainelWhitelistLayout(guild)
 
-        self.add_view(self.painel_recrutamento_view)
-        self.add_view(self.painel_avaliacao_view)
-        self.add_view(self.painel_whitelist_view)
-        # ... resto igual
+        # Inicializa como None - serão criados no on_ready
+        self.painel_recrutamento_view = None
+        self.painel_avaliacao_view = None
+        self.painel_whitelist_view = None
 
 
         @self.tree.error
@@ -69,16 +66,23 @@ class RecrutamentoBot(commands.Bot):
         logger.info(f"Bot conectado como {self.user} (ID: {self.user.id})")
         guild = self.get_guild(int(GUILD_ID))
 
-        await garantir_painel_recrutamento(self)
-        await garantir_painel_avaliacao(self)
-        await garantir_painel_whitelist(self)
 
         if guild:
             logger.info(f"Conectado ao servidor: {guild.name} (ID: {guild.id})")
         else:
             logger.warning("Não foi possível encontrar o servidor com o ID fornecido.")
 
+        self.add_view(self.painel_recrutamento_view)
+        self.add_view(self.painel_avaliacao_view)
+        self.add_view(self.painel_whitelist_view)
 
+        self.painel_recrutamento_view = PainelRecrutamentoLayout()
+        self.painel_avaliacao_view = PainelAvaliacaoLayout()
+        self.painel_whitelist_view = PainelWhitelistLayout(guild)
+
+        await garantir_painel_recrutamento(self)
+        await garantir_painel_avaliacao(self)
+        await garantir_painel_whitelist(self)
 
 bot = RecrutamentoBot()
 
