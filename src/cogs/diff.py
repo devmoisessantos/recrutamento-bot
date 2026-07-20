@@ -2,9 +2,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from core.backup_manager import BackupManager
-from core.diff_engine import DiffEngine
-from utils.permissions import is_authorized
+from src.core.backup_manager import BackupManager
+from src.core.diff_engine import DiffEngine
+from src.utils.permissions import is_authorized
 
 
 class DiffCog(commands.Cog):

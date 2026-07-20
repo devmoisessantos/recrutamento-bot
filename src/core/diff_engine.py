@@ -1,5 +1,5 @@
 import discord
-from core.backup_manager import BackupManager
+from src.core.backup_manager import BackupManager
 
 
 class DiffEngine:

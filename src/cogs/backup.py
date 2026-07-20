@@ -1,12 +1,12 @@
 import discord
+import datetime
 from discord import app_commands
 from discord.ext import commands, tasks
-import datetime
 
-import config
-from core.backup_manager import BackupManager
-from core.logger import BackupLogger
-from utils.permissions import is_authorized
+from src.config import LOG_CHANNEL_NAME, AUTO_BACKUP_INTERVAL_HOURS, BACKUP_DIR
+from src.core.backup_manager import BackupManager
+from src.core.logger import BackupLogger
+from src.utils.permissions import is_authorized
 
 
 class BackupCog(commands.Cog):
@@ -15,8 +15,8 @@ class BackupCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.bm = BackupManager()
-        self.logger = BackupLogger(config.LOG_CHANNEL_NAME)
-        self.auto_backup_task.change_interval(hours=config.AUTO_BACKUP_INTERVAL_HOURS)
+        self.logger = BackupLogger(LOG_CHANNEL_NAME)
+        self.auto_backup_task.change_interval(hours=AUTO_BACKUP_INTERVAL_HOURS)
         self.auto_backup_task.start()
 
     def cog_unload(self):
@@ -88,7 +88,7 @@ class BackupCog(commands.Cog):
         if not filename:
             await interaction.response.send_message("Nenhum backup encontrado.", ephemeral=True)
             return
-        path = f"{config.BACKUP_DIR}/{interaction.guild.id}/{filename}"
+        path = f"{BACKUP_DIR}/{interaction.guild.id}/{filename}"
         try:
             await interaction.response.send_message(
                 content=f"📥 Backup: `{filename}`",

@@ -4,17 +4,17 @@ import os
 import datetime
 from typing import Optional
 
-import config
+from src.config import BACKUP_DIR, MAX_BACKUPS_PER_GUILD
 
 
 class BackupManager:
     """Responsável por serializar o estado do servidor e gravar/ler backups em JSON."""
 
     def __init__(self):
-        os.makedirs(config.BACKUP_DIR, exist_ok=True)
+        os.makedirs(BACKUP_DIR, exist_ok=True)
 
     def _guild_dir(self, guild_id: int) -> str:
-        path = os.path.join(config.BACKUP_DIR, str(guild_id))
+        path = os.path.join(BACKUP_DIR, str(guild_id))
         os.makedirs(path, exist_ok=True)
         return path
 
@@ -154,7 +154,7 @@ class BackupManager:
         files = sorted(
             [f for f in os.listdir(guild_dir) if f.endswith(".json")], reverse=True
         )
-        for old_file in files[config.MAX_BACKUPS_PER_GUILD:]:
+        for old_file in files[MAX_BACKUPS_PER_GUILD:]:
             os.remove(os.path.join(guild_dir, old_file))
 
     def list_backups(self, guild_id: int) -> list:

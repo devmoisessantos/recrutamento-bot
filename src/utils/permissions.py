@@ -1,6 +1,6 @@
 import discord
 from discord import app_commands
-import config
+from src.config import ADMIN_ROLE_NAMES
 
 
 def is_authorized():
@@ -11,7 +11,7 @@ def is_authorized():
             return True
 
         member_role_names = {r.name for r in interaction.user.roles}
-        if member_role_names.intersection(config.ADMIN_ROLE_NAMES):
+        if member_role_names.intersection(ADMIN_ROLE_NAMES):
             return True
 
         await interaction.response.send_message(

@@ -2,12 +2,12 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import config
-from core.backup_manager import BackupManager
-from core.restore_manager import RestoreManager
-from core.logger import BackupLogger
-from utils.permissions import is_authorized
-from utils.views import ConfirmView
+from src.config import LOG_CHANNEL_NAME, CONFIRMATION_TIMEOUT
+from src.core.backup_manager import BackupManager
+from src.core.restore_manager import RestoreManager
+from src.core.logger import BackupLogger
+from src.utils.permissions import is_authorized
+from src.utils.views import ConfirmView
 
 
 class RestoreCog(commands.Cog):
@@ -19,7 +19,7 @@ class RestoreCog(commands.Cog):
         self.bot = bot
         self.bm = BackupManager()
         self.rm = RestoreManager()
-        self.logger = BackupLogger(config.LOG_CHANNEL_NAME)
+        self.logger = BackupLogger(LOG_CHANNEL_NAME)
 
     async def _load_target_backup(self, interaction: discord.Interaction, arquivo: str):
         filename = arquivo or self.bm.latest_backup_filename(interaction.guild.id)
@@ -29,7 +29,7 @@ class RestoreCog(commands.Cog):
         return backup, filename
 
     async def _confirm(self, interaction: discord.Interaction, texto: str) -> bool:
-        view = ConfirmView(author_id=interaction.user.id, timeout=config.CONFIRMATION_TIMEOUT)
+        view = ConfirmView(author_id=interaction.user.id, timeout=CONFIRMATION_TIMEOUT)
         await interaction.followup.send(texto, view=view, ephemeral=True)
         await view.wait()
         return bool(view.value)

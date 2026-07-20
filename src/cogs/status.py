@@ -1,10 +1,10 @@
+import os
 import discord
 from discord import app_commands
 from discord.ext import commands
-import os
 
-import config
-from core.backup_manager import BackupManager
+from src.config import AUTO_BACKUP_INTERVAL_HOURS, MAX_BACKUPS_PER_GUILD, LOG_CHANNEL_NAME, BACKUP_DIR
+from src.core.backup_manager import BackupManager
 
 
 class StatusCog(commands.Cog):
@@ -17,7 +17,7 @@ class StatusCog(commands.Cog):
         files = self.bm.list_backups(interaction.guild.id)
         latest = files[0] if files else "Nenhum"
 
-        guild_dir = os.path.join(config.BACKUP_DIR, str(interaction.guild.id))
+        guild_dir = os.path.join(BACKUP_DIR, str(interaction.guild.id))
         total_size = 0
         if os.path.isdir(guild_dir):
             total_size = sum(
@@ -28,9 +28,9 @@ class StatusCog(commands.Cog):
         embed.add_field(name="Backups salvos", value=str(len(files)))
         embed.add_field(name="Último backup", value=latest, inline=False)
         embed.add_field(name="Espaço usado", value=f"{total_size / 1024:.1f} KB")
-        embed.add_field(name="Intervalo automático", value=f"A cada {config.AUTO_BACKUP_INTERVAL_HOURS}h")
-        embed.add_field(name="Máx. backups guardados", value=str(config.MAX_BACKUPS_PER_GUILD))
-        embed.add_field(name="Canal de logs", value=f"#{config.LOG_CHANNEL_NAME}")
+        embed.add_field(name="Intervalo automático", value=f"A cada {AUTO_BACKUP_INTERVAL_HOURS}h")
+        embed.add_field(name="Máx. backups guardados", value=str(MAX_BACKUPS_PER_GUILD))
+        embed.add_field(name="Canal de logs", value=f"#{LOG_CHANNEL_NAME}")
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
