@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Float
+from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Float, BigInteger
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy import UniqueConstraint 
 
@@ -8,18 +8,19 @@ class Base(DeclarativeBase):
     pass
 
 
+# Função de data atual
 def agora() -> datetime:
-    return datetime.utcnow()  # antes: datetime.now(timezone.utc)
+    return datetime.now(timezone.utc)  # Forma moderna e correta
 
 
 class Usuario(Base):
     __tablename__ = "usuarios"
 
-    discord_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    discord_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     nickname_atual: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[str] = mapped_column(String(30), default="VISITANTE")
     ja_foi_aprovado: Mapped[bool] = mapped_column(Boolean, default=False)
-    data_ultima_reprovacao: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    data_ultima_reprovacao: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     recrutamentos: Mapped[list["Recrutamento"]] = relationship(back_populates="candidato")
     historico_cargos: Mapped[list["HistoricoCargo"]] = relationship(back_populates="usuario")
@@ -31,11 +32,11 @@ class Recrutamento(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     id_fivem: Mapped[str | None] = mapped_column(String(20), nullable=True)
     discord_id_candidato: Mapped[int] = mapped_column(ForeignKey("usuarios.discord_id"))
-    discord_id_recrutador: Mapped[int] = mapped_column(Integer)
+    discord_id_recrutador: Mapped[int] = mapped_column(BigInteger)
 
-    data_inicio: Mapped[datetime] = mapped_column(DateTime, default=agora)
-    data_inicio_prova: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    data_fim: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    data_inicio: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=agora)
+    data_inicio_prova: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    data_fim: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     status: Mapped[str] = mapped_column(String(30), default="ESTUDANDO")
     # ESTUDANDO, EM_PROVA, APROVADO, REPROVADO, REPROVADO_TEMPO
@@ -78,8 +79,8 @@ class HistoricoCargo(Base):
     discord_id: Mapped[int] = mapped_column(ForeignKey("usuarios.discord_id"))
     cargo: Mapped[str] = mapped_column(String(50))
     acao: Mapped[str] = mapped_column(String(20))  # ADICIONADO / REMOVIDO
-    executor_id: Mapped[int] = mapped_column(Integer)  # ID do bot ou do recrutador
-    data_hora: Mapped[datetime] = mapped_column(DateTime, default=agora)
+    executor_id: Mapped[int] = mapped_column(BigInteger)  # ID do bot ou do recrutador
+    data_hora: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=agora)
 
     usuario: Mapped["Usuario"] = relationship(back_populates="historico_cargos")
 
@@ -89,18 +90,18 @@ class PainelPostado(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     nome_painel: Mapped[str] = mapped_column(String(50), unique=True)
-    canal_id: Mapped[int] = mapped_column(Integer)
-    message_id: Mapped[int] = mapped_column(Integer)
+    canal_id: Mapped[int] = mapped_column(BigInteger)
+    message_id: Mapped[int] = mapped_column(BigInteger)
 
 
 class MensagemHierarquia(Base):
     __tablename__ = "mensagens_hierarquia"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    cargo_id: Mapped[int] = mapped_column(Integer)
+    cargo_id: Mapped[int] = mapped_column(BigInteger)
     pagina: Mapped[int] = mapped_column(Integer, default=1)  # ← NOVO
-    canal_id: Mapped[int] = mapped_column(Integer)
-    message_id: Mapped[int] = mapped_column(Integer)
+    canal_id: Mapped[int] = mapped_column(BigInteger)
+    message_id: Mapped[int] = mapped_column(BigInteger)
     
     # 🔥 Nova constraint: um cargo não pode ter duas mensagens com a mesma página
     __table_args__ = (UniqueConstraint('cargo_id', 'pagina'),)
