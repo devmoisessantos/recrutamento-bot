@@ -9,8 +9,6 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 CANAL_PAINEL_RECRUTAMENTO_ID = 1486369071590281326  # preencha com o ID do canal onde o painel vai ficar
 LOGO_PATH = "assets/logo.png"
 
-
-COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
 BACKUP_DIR = os.getenv("BACKUP_DIR", "data/backups")
 MAX_BACKUPS_PER_GUILD = int(os.getenv("MAX_BACKUPS_PER_GUILD", 10))
 AUTO_BACKUP_INTERVAL_HOURS = int(os.getenv("AUTO_BACKUP_INTERVAL_HOURS", 24))

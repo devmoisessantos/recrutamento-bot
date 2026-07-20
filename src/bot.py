@@ -1,7 +1,6 @@
 import discord 
 import traceback
 import logging
-import asyncio
 from discord.ext import commands
 
 from src.panels.avaliacao_panel import PainelAvaliacaoLayout
@@ -10,7 +9,7 @@ from src.panels.whitelist_panel import PainelWhitelistLayout
 from src.database.connection import init_db
 from src.database.seed_perguntas import seed_perguntas_se_vazio
 
-from src.config import DISCORD_TOKEN, GUILD_ID, CANAIS,COMMAND_PREFIX
+from src.config import DISCORD_TOKEN, GUILD_ID, CANAIS
 from src.panels.setup_paineis import garantir_painel_recrutamento, garantir_painel_avaliacao, garantir_painel_whitelist
 
 
@@ -18,18 +17,8 @@ intents = discord.Intents.default()
 intents.members = True  # necessário para ler/restaurar cargos e apelidos de membros
 intents.guilds = True
 
-bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("recrutamento-bot")
-
-
-INITIAL_COGS = [
-    "cogs.backup",
-    "cogs.restore",
-    "cogs.diff",
-    "cogs.status",
-]
-
 
 class CmsValleyBot(commands.Bot):
     def __init__(self):
@@ -37,29 +26,24 @@ class CmsValleyBot(commands.Bot):
 
     async def setup_hook(self):
         # Carregar extensões (cogs)
-        await self.load_extension("src.cogs.recrutar")
+        await self.load_extension("src.hierarquia.listener")        
         await self.load_extension("src.cogs.liberar_prova")
+        await self.load_extension("src.cogs.recrutar")
         await self.load_extension("src.cogs.aprovar")
         await self.load_extension("src.cogs.reprovar")
         await self.load_extension("src.cogs.whitelist")
         await self.load_extension("src.cogs.hierarquia")
-        await self.load_extension("src.hierarquia.listener")
+        await self.load_extension("src.cogs.backup")
+        await self.load_extension("src.cogs.restore")        
+        await self.load_extension("src.cogs.diff")
+        await self.load_extension("src.cogs.status") 
+
 
         guild_object = discord.Object(id=GUILD_ID)
         self.tree.copy_global_to(guild=guild_object)
         await self.tree.sync(guild=guild_object)
         logger.info(f"Comandos de barra sincronizados com o servidor (ID: {GUILD_ID})")
 
-        async with bot:
-            for cog in INITIAL_COGS:
-                await bot.load_extension(cog)
-            await bot.start(DISCORD_TOKEN)
-
-        try:
-            synced = await bot.tree.sync()
-            print(f"🔄 {len(synced)} comandos de barra sincronizados.")
-        except Exception as e:
-            print(f"Erro ao sincronizar comandos: {e}")
 
         await init_db()
         await seed_perguntas_se_vazio()
@@ -83,28 +67,27 @@ class CmsValleyBot(commands.Bot):
                     f"Usuário: {interaction.user.mention}\n"
                     f"```py\n{tb}\n```"
                 )
-                
-    @bot.event
+              
     async def on_ready(self):
-        logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
-        guild = self.get_guild(int(GUILD_ID))
-        
 
-        if guild:
-            logger.info(f"Conectado ao servidor: {guild.name} (ID: {guild.id})")
-        else:
-            logger.warning("Não foi possível encontrar o servidor com o ID fornecido.")
+        guild = self.get_guild(int(GUILD_ID))
+        if guild is None:
+            logger.warning("Servidor ainda não encontrado.")
+            return
+
+        logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
 
 
         # 🔥 PRIMEIRO: Cria os painéis
-        self.painel_recrutamento_view = PainelRecrutamentoLayout()
-        self.painel_avaliacao_view = PainelAvaliacaoLayout()
-        self.painel_whitelist_view = PainelWhitelistLayout(guild)
+        if self.painel_recrutamento_view is None:
+            self.painel_recrutamento_view = PainelRecrutamentoLayout()
+            self.painel_avaliacao_view = PainelAvaliacaoLayout()
+            self.painel_whitelist_view = PainelWhitelistLayout(guild)
 
-        # 🔥 DEPOIS: Adiciona as views persistentes
-        self.add_view(self.painel_recrutamento_view)
-        self.add_view(self.painel_avaliacao_view)
-        self.add_view(self.painel_whitelist_view)
+            # 🔥 DEPOIS: Adiciona as views persistentes
+            self.add_view(self.painel_recrutamento_view)
+            self.add_view(self.painel_avaliacao_view)
+            self.add_view(self.painel_whitelist_view)
 
         # 🔥 POR ÚLTIMO: Garante que os painéis estão nos canais corretos
         await garantir_painel_recrutamento(self)
