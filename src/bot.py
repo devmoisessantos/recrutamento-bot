@@ -10,8 +10,7 @@ from src.panels.whitelist_panel import PainelWhitelistLayout
 from src.database.connection import init_db
 from src.database.seed_perguntas import seed_perguntas_se_vazio
 
-import config
-from src.config import DISCORD_TOKEN, GUILD_ID, CANAIS
+from src.config import DISCORD_TOKEN, GUILD_ID, CANAIS,COMMAND_PREFIX
 from src.panels.setup_paineis import garantir_painel_recrutamento, garantir_painel_avaliacao, garantir_painel_whitelist
 
 
@@ -19,7 +18,7 @@ intents = discord.Intents.default()
 intents.members = True  # necessário para ler/restaurar cargos e apelidos de membros
 intents.guilds = True
 
-bot = commands.Bot(command_prefix=config.COMMAND_PREFIX, intents=intents)
+bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("recrutamento-bot")
 
