@@ -1,6 +1,7 @@
 import discord 
 import traceback
 import logging
+import asyncio
 from discord.ext import commands
 
 from src.panels.avaliacao_panel import PainelAvaliacaoLayout
@@ -9,16 +10,29 @@ from src.panels.whitelist_panel import PainelWhitelistLayout
 from src.database.connection import init_db
 from src.database.seed_perguntas import seed_perguntas_se_vazio
 
+import config
 from src.config import DISCORD_TOKEN, GUILD_ID, CANAIS
 from src.panels.setup_paineis import garantir_painel_recrutamento, garantir_painel_avaliacao, garantir_painel_whitelist
 
+
+intents = discord.Intents.default()
+intents.members = True  # necessário para ler/restaurar cargos e apelidos de membros
+intents.guilds = True
+
+bot = commands.Bot(command_prefix=config.COMMAND_PREFIX, intents=intents)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("recrutamento-bot")
 
-intents = discord.Intents.default()
-intents.members = True
 
-class RecrutamentoBot(commands.Bot):
+INITIAL_COGS = [
+    "cogs.backup",
+    "cogs.restore",
+    "cogs.diff",
+    "cogs.status",
+]
+
+
+class CmsValleyBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="!", intents=intents)
 
@@ -36,6 +50,17 @@ class RecrutamentoBot(commands.Bot):
         self.tree.copy_global_to(guild=guild_object)
         await self.tree.sync(guild=guild_object)
         logger.info(f"Comandos de barra sincronizados com o servidor (ID: {GUILD_ID})")
+
+        async with bot:
+            for cog in INITIAL_COGS:
+                await bot.load_extension(cog)
+            await bot.start(DISCORD_TOKEN)
+
+        try:
+            synced = await bot.tree.sync()
+            print(f"🔄 {len(synced)} comandos de barra sincronizados.")
+        except Exception as e:
+            print(f"Erro ao sincronizar comandos: {e}")
 
         await init_db()
         await seed_perguntas_se_vazio()
@@ -60,10 +85,11 @@ class RecrutamentoBot(commands.Bot):
                     f"```py\n{tb}\n```"
                 )
                 
+    @bot.event
     async def on_ready(self):
-        logger.info(f"Bot conectado como {self.user} (ID: {self.user.id})")
+        logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
         guild = self.get_guild(int(GUILD_ID))
-
+        
 
         if guild:
             logger.info(f"Conectado ao servidor: {guild.name} (ID: {guild.id})")
@@ -87,11 +113,10 @@ class RecrutamentoBot(commands.Bot):
         await garantir_painel_whitelist(self)
 
 
-bot = RecrutamentoBot()
+bot = CmsValleyBot()
 
 def run():
     bot.run(DISCORD_TOKEN)
     
-
 
 
