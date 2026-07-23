@@ -112,6 +112,7 @@ async def _reverter_remocoes_suspeitas(guild: discord.Guild, executor: discord.M
     if canal is None:
         return
 
+
     texto = (
         f"- **Executor:** {executor.mention} (`{executor.id}`)\n"
         f"- **Motivo:** {len(remocoes)} remoções de cargo em menos de {JANELA_TEMPO_SUSPEITA_SEGUNDOS}s\n\n"
