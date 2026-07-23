@@ -231,8 +231,9 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
         # Cria a view interativa passando o usuário como membro_executor
         view_de_gerenciamento = GerenciarCargosView(membro_executor=interaction.user)
 
+        # ⚠️ Não pode usar 'content' quando a interação veio de um LayoutView (Container V2).
+        # Passamos apenas a view, que já contém o texto "# 🛠️ Gerenciamento de Cargos".
         await interaction.response.send_message(
-            "Selecione o candidato:",
             view=view_de_gerenciamento,
             ephemeral=True,  # só o usuário que clicou vê
         )
