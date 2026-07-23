@@ -16,12 +16,9 @@ def _cargo_permitido_para_executor(executor: discord.Member, nome_cargo: str) ->
 def determinar_escopos(membro: discord.Member) -> list[str]:
     """Retorna as chaves de ESCOPOS_GERENCIAMENTO que esse membro está autorizado a usar."""
     escopos = []
-    nomes_cargos_membro = [cargo.name for cargo in membro.roles]  # Pega os nomes dos cargos
-    
     for chave, config_escopo in ESCOPOS_GERENCIAMENTO.items():
-        cargos_autorizados = config_escopo["cargos_autorizados"]
-        # Verifica se algum cargo do membro está na lista de autorizados
-        if any(nome_cargo in cargos_autorizados for nome_cargo in nomes_cargos_membro):
+        ids_autorizados = {CARGOS[nome] for nome in config_escopo["cargos_autorizados"]}
+        if any(cargo.id in ids_autorizados for cargo in membro.roles):
             escopos.append(chave)
     return escopos
 
