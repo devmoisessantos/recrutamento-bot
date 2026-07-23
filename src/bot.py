@@ -6,6 +6,7 @@ from discord.ext import commands
 from src.panels.avaliacao_panel import PainelAvaliacaoLayout
 from src.panels.recrutamento_panel import PainelRecrutamentoLayout
 from src.panels.whitelist_panel import PainelWhitelistLayout
+from src.panels.gerenciar_cargos_panel import PainelGerenciarCargoLayout
 from src.database.connection import init_db
 from src.database.seed_perguntas import seed_perguntas_se_vazio
 
@@ -58,6 +59,7 @@ class CmsValleyBot(commands.Bot):
         self.painel_recrutamento_view = None
         self.painel_avaliacao_view = None
         self.painel_whitelist_view = None
+        self.painel_gerenciar_cargos_view = None 
 
 
         @self.tree.error
@@ -74,32 +76,32 @@ class CmsValleyBot(commands.Bot):
                     f"```py\n{tb}\n```"
                 )
               
-    async def on_ready(self):
+async def on_ready(self):
+    guild = self.get_guild(int(GUILD_ID))
+    if guild is None:
+        logger.warning("Servidor ainda não encontrado.")
+        return
 
-        guild = self.get_guild(int(GUILD_ID))
-        if guild is None:
-            logger.warning("Servidor ainda não encontrado.")
-            return
+    logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
 
-        logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
+    # Cria os painéis se for a primeira vez
+    if self.painel_recrutamento_view is None:
+        self.painel_recrutamento_view = PainelRecrutamentoLayout()
+        self.painel_avaliacao_view = PainelAvaliacaoLayout()
+        self.painel_whitelist_view = PainelWhitelistLayout(guild)
+        self.painel_gerenciar_cargos_view = PainelGerenciarCargoLayout(guild=guild)  # ← NOVO
 
+        # Registra as views persistentes
+        self.add_view(self.painel_recrutamento_view)
+        self.add_view(self.painel_avaliacao_view)
+        self.add_view(self.painel_whitelist_view)
+        self.add_view(self.painel_gerenciar_cargos_view)  # ← NOVO
 
-        # 🔥 PRIMEIRO: Cria os painéis
-        if self.painel_recrutamento_view is None:
-            self.painel_recrutamento_view = PainelRecrutamentoLayout()
-            self.painel_avaliacao_view = PainelAvaliacaoLayout()
-            self.painel_whitelist_view = PainelWhitelistLayout(guild)
-
-            # 🔥 DEPOIS: Adiciona as views persistentes
-            self.add_view(self.painel_recrutamento_view)
-            self.add_view(self.painel_avaliacao_view)
-            self.add_view(self.painel_whitelist_view)
-
-        # 🔥 POR ÚLTIMO: Garante que os painéis estão nos canais corretos
-        await garantir_painel_recrutamento(self)
-        await garantir_painel_avaliacao(self)
-        await garantir_painel_whitelist(self)
-        await garantir_painel_gerenciar_cargos(self)
+    # Garante que os painéis estão nos canais corretos
+    await garantir_painel_recrutamento(self)
+    await garantir_painel_avaliacao(self)
+    await garantir_painel_whitelist(self)
+    await garantir_painel_gerenciar_cargos(self)  # ← Já existe, só confirma
 
 
 bot = CmsValleyBot()
