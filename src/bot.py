@@ -76,38 +76,34 @@ class CmsValleyBot(commands.Bot):
                     f"```py\n{tb}\n```"
                 )
               
-async def on_ready(self):
-    guild = self.get_guild(int(GUILD_ID))
-    if guild is None:
-        logger.warning("Servidor ainda não encontrado.")
-        return
+    async def on_ready(self):    # 👈 agora dentro da classe, mesma indentação de setup_hook
+        guild = self.get_guild(int(GUILD_ID))
+        if guild is None:
+            logger.warning("Servidor ainda não encontrado.")
+            return
 
-    logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
+        logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
 
-    # Cria os painéis se for a primeira vez
-    if self.painel_recrutamento_view is None:
-        self.painel_recrutamento_view = PainelRecrutamentoLayout()
-        self.painel_avaliacao_view = PainelAvaliacaoLayout()
-        self.painel_whitelist_view = PainelWhitelistLayout(guild)
-        self.painel_gerenciar_cargos_view = PainelGerenciarCargoLayout(guild=guild)  # ← NOVO
+        if self.painel_recrutamento_view is None:
+            self.painel_recrutamento_view = PainelRecrutamentoLayout()
+            self.painel_avaliacao_view = PainelAvaliacaoLayout()
+            self.painel_whitelist_view = PainelWhitelistLayout(guild)
+            self.painel_gerenciar_cargos_view = PainelGerenciarCargoLayout(guild=guild)
 
-        # Registra as views persistentes
-        self.add_view(self.painel_recrutamento_view)
-        self.add_view(self.painel_avaliacao_view)
-        self.add_view(self.painel_whitelist_view)
-        self.add_view(self.painel_gerenciar_cargos_view)  # ← NOVO
+            self.add_view(self.painel_recrutamento_view)
+            self.add_view(self.painel_avaliacao_view)
+            self.add_view(self.painel_whitelist_view)
+            self.add_view(self.painel_gerenciar_cargos_view)
 
-    # Garante que os painéis estão nos canais corretos
-    await garantir_painel_recrutamento(self)
-    await garantir_painel_avaliacao(self)
-    await garantir_painel_whitelist(self)
-    await garantir_painel_gerenciar_cargos(self)  # ← Já existe, só confirma
+        await garantir_painel_recrutamento(self)
+        await garantir_painel_avaliacao(self)
+        await garantir_painel_whitelist(self)
+        await garantir_painel_gerenciar_cargos(self)
 
 
 bot = CmsValleyBot()
 
 def run():
     bot.run(DISCORD_TOKEN)
-    
 
 
