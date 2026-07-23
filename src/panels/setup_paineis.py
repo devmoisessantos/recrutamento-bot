@@ -7,6 +7,7 @@ from src.database.models import PainelPostado
 from src.panels.recrutamento_panel import PainelRecrutamentoLayout
 from src.panels.avaliacao_panel import PainelAvaliacaoLayout
 from src.panels.whitelist_panel import PainelWhitelistLayout 
+from src.panels.gerenciar_cargos_panel import PainelGerenciarCargoLayout
 
 async def garantir_painel_whitelist(bot: discord.Client, interaction: discord.Interaction = None):
     async with async_session() as session:
@@ -97,3 +98,28 @@ async def garantir_painel_avaliacao(bot: discord.Client):
             message_id=mensagem.id)
         )
         await session.commit()
+
+
+    async def garantir_painel_gerenciar_cargos(bot: discord.Client):
+        async with async_session() as session:
+            resultado = await session.execute(
+                select(PainelPostado).where(PainelPostado.nome_painel == "gerenciar_cargos")
+            )
+            registro = resultado.scalar_one_or_none()
+            if registro is not None:
+                return
+
+            canal = bot.get_channel(CANAIS["MANAGE_ROLE_CHANNEL_ID"])
+            if canal is None:
+                print("Canal de Gerenciamento de Cargos não encontrado. Confira CANAIS['MANAGE_ROLE_CHANNEL_ID'].")
+                return
+
+            arquivo = discord.File(LOGO_PATH, filename="logo.png")
+            mensagem = await canal.send(view=PainelGerenciarCargoLayout(), file=arquivo)
+
+            session.add(PainelPostado(
+                nome_painel="gerenciar_cargos", 
+                canal_id=canal.id, 
+                message_id=mensagem.id)
+            )
+            await session.commit()

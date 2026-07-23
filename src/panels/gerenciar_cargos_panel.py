@@ -155,3 +155,89 @@ class GerenciarCargosView(LoggingViewMixin, discord.ui.LayoutView):
         # pois o service usa followup.send
         await interaction.response.defer(ephemeral=True)
         await remover_cargo(interaction, self.candidato_selecionado, self.cargo_selecionado)
+
+class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
+    """
+    Painel fixo que fica exposto no canal de gerenciamento de cargos.
+    Contém um botão que, ao ser clicado, abre a view interativa
+    GerenciarCargosView para o usuário que clicou.
+    """
+    def __init__(self, guild: discord.Guild):
+        super().__init__(timeout=None)  # timeout=None = painel permanente
+
+        # Linha de ação com o botão de abrir o gerenciador
+        self.linha_do_botao = discord.ui.ActionRow()
+
+        self.botao_abrir_gerenciador = discord.ui.Button(
+            label="Gerenciar Cargos",
+            style=discord.ButtonStyle.red,  # azul combina com o accent_color blurple
+            emoji="⚙️",
+            custom_id="painel:gerenciar_cargos",
+        )
+
+        # Conecta o callback (método que será chamado ao clicar)
+        self.botao_abrir_gerenciador.callback = self._ao_clicar_gerenciar
+        self.linha_do_botao.add_item(self.botao_abrir_gerenciador)
+
+        # Ícone do servidor para o Thumbnail
+        url_do_icone = guild.icon.url if guild.icon else None
+
+        self.container = discord.ui.Container(
+            # ────────────────────────────────────────────────
+            # Section (Título + descrição + Thumbnail)
+            # ────────────────────────────────────────────────
+            discord.ui.TextDisplay(
+                "# ⚙️ Painel de Gerenciamento de Cargos"
+            ),
+
+            # ────────────────────────────────────────────────
+            # Separator
+            # ────────────────────────────────────────────────
+            discord.ui.Separator(
+                spacing=discord.SeparatorSpacing.large
+            ),
+            # ────────────────────────────────────────────────
+            # TextDisplay
+            # ────────────────────────────────────────────────
+
+            discord.ui.Section(
+                "> **Sistema para Gerenciar Cargos do Servidor**\n",
+                (
+
+                    "- Esse painel é dedicado e uso exclusivo da Diretoria e GATE.\n"
+                    "- Utilizado para **Adicionar** e **Remover** cargos de membros.\n" 
+                    "- Todo e qualquer uso abusivo desse Sistema pode Gerar Punições ao executor.**\n"
+                    "- Toda atividade é registrada, o sistema liberará seu acesso e ajustará os cargos automaticamente."
+                    "- Clique no botão abaixo para iniciar um novo gerenciamento.\n"
+                ),
+                accessory=discord.ui.Thumbnail(url_do_icone) if url_do_icone else None,
+            ),
+
+            # ────────────────────────────────────────────────
+            # Separator
+            # ────────────────────────────────────────────────
+            discord.ui.Separator(
+                spacing=discord.SeparatorSpacing.large
+            ),
+
+            # ────────────────────────────────────────────────
+            # ActionRow
+            # ────────────────────────────────────────────────
+            self.action_row,
+            accent_color=discord.Color.blurple(),
+        )
+        self.add_item(self.container)  # 👈 não esquecer disso // sem isso não aparece mensagem nenhuma 
+
+    async def _ao_clicar_gerenciar(self, interaction: discord.Interaction):
+        """
+        Callback do botão do painel fixo.
+        Abre a GerenciarCargosView de forma ephemeral para o usuário que clicou.
+        """
+        # Cria a view interativa passando o usuário como membro_executor
+        view_de_gerenciamento = GerenciarCargosView(membro_executor=interaction.user)
+
+        await interaction.response.send_message(
+            "Selecione o candidato:",
+            view=view_de_gerenciamento,
+            ephemeral=True,  # só o usuário que clicou vê
+        )

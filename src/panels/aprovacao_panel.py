@@ -17,12 +17,13 @@ def possui_cargo_recrutador_ou_superior(membro: discord.Member) -> bool:
     ids_permitidos = {
         CARGOS["✈️・Recrutador"], 
         CARGOS["🥼・Instrutor"], 
-        CARGOS["Supervisor"],
-        CARGOS["Vice Diretor"], 
+        CARGOS["👑・SUPERVISOR"],
+        CARGOS["👑・VICE DIRETOR"], 
         CARGOS["👑・DIRETOR"], 
-        CARGOS["Vice Diretor Geral"],
-        CARGOS["Diretor Geral"], 
-        CARGOS["👑 Responsável Geral"],
+        CARGOS["🔍・COORDENADOR"], 
+        CARGOS["👑 |  VICE DIRETOR GERAL"],
+        CARGOS["👑 |  DIRETOR GERAL"], 
+        CARGOS["👑 | RESPONSÁVEL GERAL"],
     }
     return any(cargo.id in ids_permitidos for cargo in membro.roles)
 

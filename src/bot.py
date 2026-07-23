@@ -10,7 +10,12 @@ from src.database.connection import init_db
 from src.database.seed_perguntas import seed_perguntas_se_vazio
 
 from src.config import DISCORD_TOKEN, GUILD_ID, CANAIS
-from src.panels.setup_paineis import garantir_painel_recrutamento, garantir_painel_avaliacao, garantir_painel_whitelist
+from src.panels.setup_paineis import (
+    garantir_painel_recrutamento, 
+    garantir_painel_avaliacao, 
+    garantir_painel_whitelist, 
+    garantir_painel_gerenciar_cargos
+)
 
 
 intents = discord.Intents.default()
@@ -94,6 +99,7 @@ class CmsValleyBot(commands.Bot):
         await garantir_painel_recrutamento(self)
         await garantir_painel_avaliacao(self)
         await garantir_painel_whitelist(self)
+        await garantir_painel_gerenciar_cargos(self)
 
 
 bot = CmsValleyBot()
