@@ -228,12 +228,16 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
         Callback do botão do painel fixo.
         Abre a GerenciarCargosView de forma ephemeral para o usuário que clicou.
         """
-        # Cria a view interativa passando o usuário como membro_executor
+        # Defer PRIMEIRO — avisa ao Discord que vamos responder,
+        # evitando o timeout de 3 segundos (Unknown interaction)
+        await interaction.response.defer(ephemeral=True)
+
+        # Agora sim faz o processamento pesado:
+        # criar a view percorre escopos, cargos, etc.
         view_de_gerenciamento = GerenciarCargosView(membro_executor=interaction.user)
 
-        # ⚠️ Não pode usar 'content' quando a interação veio de um LayoutView (Container V2).
-        # Passamos apenas a view, que já contém o texto "# 🛠️ Gerenciamento de Cargos".
-        await interaction.response.send_message(
+        # Usa followup.send porque a resposta inicial já foi usada pelo defer
+        await interaction.followup.send(
             view=view_de_gerenciamento,
-            ephemeral=True,  # só o usuário que clicou vê
+            ephemeral=True,
         )
