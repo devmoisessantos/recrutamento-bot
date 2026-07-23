@@ -269,7 +269,7 @@ ESCOPOS_GERENCIAMENTO = {
                 "🚑・Paramédico",
                 "🔰・Enfermeiro (a)"
             ]
-        }
+        },
     },
     "geral": {
         "cargos_autorizados": [
@@ -353,9 +353,9 @@ ESCOPOS_GERENCIAMENTO = {
                 "🥼・Doutor",
                 "🚑・Paramédico",
                 "🔰・Enfermeiro (a)"
-            ]
-        }
-    }
+            ],
+        },
+    },
 }
 
 
