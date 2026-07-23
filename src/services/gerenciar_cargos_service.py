@@ -16,25 +16,39 @@ def _cargo_permitido_para_executor(executor: discord.Member, nome_cargo: str) ->
 def determinar_escopos(membro: discord.Member) -> list[str]:
     """Retorna as chaves de ESCOPOS_GERENCIAMENTO que esse membro está autorizado a usar."""
     escopos = []
+    nomes_cargos_membro = [cargo.name for cargo in membro.roles]  # Pega os nomes dos cargos
+    
     for chave, config_escopo in ESCOPOS_GERENCIAMENTO.items():
-        ids_autorizados = {CARGOS[nome] for nome in config_escopo["cargos_autorizados"]}
-        if any(cargo.id in ids_autorizados for cargo in membro.roles):
+        cargos_autorizados = config_escopo["cargos_autorizados"]
+        # Verifica se algum cargo do membro está na lista de autorizados
+        if any(nome_cargo in cargos_autorizados for nome_cargo in nomes_cargos_membro):
             escopos.append(chave)
     return escopos
 
 
-def listar_cargos_do_escopo(escopo: str) -> list[str]:
-    """Nomes de cargo gerenciáveis dentro de um escopo. 'geral' junta GATE + Diretoria."""
+def listar_cargos_do_escopo(escopo: str, membro: discord.Member = None) -> list[str]:
+    """Nomes de cargo gerenciáveis dentro de um escopo."""
     config_escopo = ESCOPOS_GERENCIAMENTO[escopo]
-    if config_escopo["cargos_gerenciaveis"] is not None:
-        return config_escopo["cargos_gerenciaveis"]
-
-    todos = []
-    for outro in ESCOPOS_GERENCIAMENTO.values():
-        if outro["cargos_gerenciaveis"] is not None:
-            todos.extend(outro["cargos_gerenciaveis"])
-    return todos
-
+    cargos_gerenciaveis = config_escopo["cargos_gerenciaveis"]
+    
+    # Se for uma lista, retorna diretamente
+    if isinstance(cargos_gerenciaveis, list):
+        return cargos_gerenciaveis
+    
+    # Se for um dicionário, precisa filtrar baseado no cargo do membro
+    if isinstance(cargos_gerenciaveis, dict) and membro:
+        nomes_cargos_membro = [cargo.name for cargo in membro.roles]
+        
+        # Encontra qual cargo do membro tem permissão no dicionário
+        for cargo_autorizado, cargos_permitidos in cargos_gerenciaveis.items():
+            if cargo_autorizado in nomes_cargos_membro:
+                return cargos_permitidos
+        
+        # Se nenhum cargo específico for encontrado, retorna lista vazia
+        return []
+    
+    # Fallback: se for None ou não for lista nem dict
+    return []
 
 async def adicionar_cargo(interaction: discord.Interaction, candidato: discord.Member, nome_cargo: str):
     guild = interaction.guild
