@@ -26,6 +26,7 @@ class CmsValleyBot(commands.Bot):
 
     async def setup_hook(self):
         # Carregar extensões (cogs)
+        await self.load_extension("src.cogs.gerenciar_cargos")        
         await self.load_extension("src.hierarquia.listener")        
         await self.load_extension("src.cogs.liberar_prova")
         await self.load_extension("src.cogs.recrutar")

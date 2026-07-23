@@ -44,20 +44,20 @@ CARGOS = {
     "👑・Responsável Instrutor・🎓": 1486368758363586592,
     "👑・Responsável Recrutamento・🎯": 1486368757440970803,
     "👑・Responsável Destaque・👑": 1496398147642069063,
-    "GATE | CMS・Valley": 1515898748763508907,
+    "🛡️・【 GATE 】CMS  ·  Valley": 1515898748763508907,
     "⚔️・【 GATE 】GUARDIÃO": 1515670358261497906,
     "⚔️・【 GATE 】OPERADOR": 1515670175125475469,    
     "🛡️・【 GATE 】CAPITÃO": 1515670028999983175,
     "🛡️・【 GATE 】COORDENADOR・TÁTICO": 1515669916785836144,   
     "👑・【 GATE 】SUBCOMANDANTE・TÁTICO": 1515669807293403217,
-    "👑・【 GATE 】 COMANDANTE・TÁTICO": 1515669491038818415,
-    "Supervisor": 1522581678072004649,  
-    "Vice Diretor": 1522581475118289036,  
+    "👑・【 GATE 】COMANDANTE・TÁTICO": 1515669491038818415,
+    "👑・SUPERVISOR": 1522581678072004649,  
+    "👑・VICE DIRETOR": 1522581475118289036,  
     "👑・DIRETOR": 1486368748502781983,  
-    "🔍・Corregedoria": 1486368746678386688,
-    "Vice Diretor Geral": 1486368745252192256,  
-    "Diretor Geral": 1486368744195227780,
-    "👑 Responsável Geral": 1425163342611349574,  
+    "🔍・COORDENADOR": 1486368746678386688,
+    "👑 |  VICE DIRETOR GERAL": 1486368745252192256,  
+    "👑 |  DIRETOR GERAL": 1486368744195227780,
+    "👑 | RESPONSÁVEL GERAL": 1425163342611349574,  
     "Responsavel HP": 1325206480541978643, 
     "Supervisor NW": 1325206480558882829
 
@@ -66,17 +66,17 @@ CARGOS = {
 CARGOS_HIERARQUIA = [
     
     "Responsavel HP",
-    "👑 Responsável Geral",
-    "Diretor Geral",
-    "Vice Diretor Geral",
-    "🔍・Corregedoria",
+    "👑 | RESPONSÁVEL GERAL",
+    "👑 |  DIRETOR GERAL",
+    "👑 |  VICE DIRETOR GERAL",
+    "🔍・COORDENADOR",
     "👑・Responsável Instrutor・🎓",
     "👑・Responsável Recrutamento・🎯",
     "👑・Responsável Psicólogo・🧠",
     "👑・Responsável Doutor・🥼",
     "👑・DIRETOR",
-    "Vice Diretor",
-    "Supervisor",
+    "👑・VICE DIRETOR",
+    "👑・SUPERVISOR",
     "🥼・Instrutor",
     "🚑・Instrutor Resgate",
     "✈️・Recrutador",
@@ -87,12 +87,12 @@ CARGOS_HIERARQUIA = [
 ]
 
 CARGOS_EXCLUIR_HIERARQUIA = [
-    "GATE | CMS・Valley",
+    "🛡️・【 GATE 】CMS  ·  Valley",
 ]
 
 HIERARQUIA_GATE = [
 
-    "👑・【 GATE 】 COMANDANTE・TÁTICO",
+    "👑・【 GATE 】COMANDANTE・TÁTICO",
     "👑・【 GATE 】SUBCOMANDANTE・TÁTICO",
     "🛡️・【 GATE 】COORDENADOR・TÁTICO",   
     "🛡️・【 GATE 】CAPITÃO",
@@ -116,24 +116,24 @@ HIERARQUIA_CONCESSAO = {
     "✈️・Recrutador": "👑・DIRETOR",
     "🚑・Instrutor Resgate": "👑・DIRETOR",
     "🥼・Instrutor": "👑・DIRETOR",   
-    "👑・Responsável Doutor・🥼": "Vice Diretor Geral",
-    "👑・Responsável Psicólogo・🧠": "Vice Diretor Geral",
-    "👑・Responsável Instrutor・🎓": "Vice Diretor Geral",
-    "👑・Responsável Recrutamento・🎯": "Vice Diretor Geral",
-    "👑・Responsável Destaque・👑": "Diretor Geral",
+    "👑・Responsável Doutor・🥼": "👑 |  VICE DIRETOR GERAL",
+    "👑・Responsável Psicólogo・🧠": "👑 |  VICE DIRETOR GERAL",
+    "👑・Responsável Instrutor・🎓": "👑 |  VICE DIRETOR GERAL",
+    "👑・Responsável Recrutamento・🎯": "👑 |  VICE DIRETOR GERAL",
+    "👑・Responsável Destaque・👑": "👑 |  DIRETOR GERAL",
     "⚔️・【 GATE 】GUARDIÃO": "🛡️・【 GATE 】COORDENADOR・TÁTICO",
     "⚔️・【 GATE 】OPERADOR": "🛡️・【 GATE 】COORDENADOR・TÁTICO",    
     "🛡️・【 GATE 】CAPITÃO": "🛡️・【 GATE 】COORDENADOR・TÁTICO",
     "🛡️・【 GATE 】COORDENADOR・TÁTICO": "👑・【 GATE 】SUBCOMANDANTE・TÁTICO",   
-    "👑・【 GATE 】SUBCOMANDANTE・TÁTICO": "👑・【 GATE 】 COMANDANTE・TÁTICO",
-    "👑・【 GATE 】 COMANDANTE・TÁTICO": "👑 Responsável Geral",
-    "Supervisor": "👑・DIRETOR",  
-    "Vice Diretor": "Vice Diretor Geral",  
-    "👑・DIRETOR": "Vice Diretor Geral",  
-    "🔍・Corregedoria": "Vice Diretor Geral",
-    "Vice Diretor Geral": "Diretor Geral",  
-    "Diretor Geral": "👑 Responsável Geral",
-    "👑 Responsável Geral": "Responsavel HP",  
+    "👑・【 GATE 】SUBCOMANDANTE・TÁTICO": "👑・【 GATE 】COMANDANTE・TÁTICO",
+    "👑・【 GATE 】COMANDANTE・TÁTICO": "👑 | RESPONSÁVEL GERAL",
+    "👑・SUPERVISOR": "👑・DIRETOR",  
+    "👑・VICE DIRETOR": "👑 |  VICE DIRETOR GERAL",  
+    "👑・DIRETOR": "👑 |  VICE DIRETOR GERAL",  
+    "🔍・COORDENADOR": "👑 |  VICE DIRETOR GERAL",
+    "👑 |  VICE DIRETOR GERAL": "👑 |  DIRETOR GERAL",  
+    "👑 |  DIRETOR GERAL": "👑 | RESPONSÁVEL GERAL",
+    "👑 | RESPONSÁVEL GERAL": "Responsavel HP",  
     "Responsavel HP": "Supervisor NW"
 
 }
@@ -164,10 +164,54 @@ PREFIXOS_NICKNAME = {
     "🩺・Psicólogo": "[ PSI ]",
     "✈️・Recrutador": "[ REC ]",
     "🥼・Instrutor": "[ INS ]",
-    "Vice Diretor": "[ V・DIR ]",
+    "👑・VICE DIRETOR": "[ V・DIR ]",
     "👑・DIRETOR": "[ DIR ]",
-    "🔍・Corregedoria": "[ COR ]",
-    "Vice Diretor Geral": "[V.DIR.G]",
-    "Diretor Geral": "⟦DIR · G⟧",
-    "👑 Responsável Geral": "⟦RESP · G⟧"
+    "🔍・COORDENADOR": "[ COR ]",
+    "👑 |  VICE DIRETOR GERAL": "[V.DIR.G]",
+    "👑 |  DIRETOR GERAL": "⟦DIR · G⟧",
+    "👑 | RESPONSÁVEL GERAL": "⟦RESP · G⟧"
 }
+
+ESCOPOS_GERENCIAMENTO = {
+    "gate": {
+        "cargos_autorizados": [
+            "👑・【 GATE 】COMANDANTE・TÁTICO",
+            "👑・【 GATE 】SUBCOMANDANTE・TÁTICO",
+        ],
+        "cargos_gerenciaveis": [
+            "🛡️・【 GATE 】COORDENADOR・TÁTICO",
+            "🛡️・【 GATE 】CAPITÃO",
+            "⚔️・【 GATE 】OPERADOR",
+            "⚔️・【 GATE 】GUARDIÃO",
+        ],
+    },
+    "diretoria": {
+        "cargos_autorizados": [
+            "🔍・COORDENADOR",
+            "👑・DIRETOR",
+            "👑・VICE DIRETOR",
+            "👑・SUPERVISOR",
+        ],
+        "cargos_gerenciaveis": [
+            "🥼・Instrutor",
+            "🚑・Instrutor Resgate",
+            "✈️・Recrutador",
+            "🩺・Psicólogo",
+            "🥼・Doutor",
+            "🚑・Paramédico",
+            "🔰・Enfermeiro (a)",
+        ],
+    },
+    "geral": {
+        "cargos_autorizados": [
+            "👑 |  DIRETOR GERAL",
+            "👑 |  VICE DIRETOR GERAL",
+            "👑 | RESPONSÁVEL GERAL",
+            "Responsavel HP",
+        ],
+        "cargos_gerenciaveis": None,  # None = todos os cargos (gate + diretoria combinados)
+    },
+}
+
+LIMITE_REMOCOES_SUSPEITAS = 5
+JANELA_TEMPO_SUSPEITA_SEGUNDOS = 90  # 1,5 minutos — mude só este número se quiser ajustar no futuro
