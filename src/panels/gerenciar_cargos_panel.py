@@ -177,7 +177,7 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
 
         self.botao_abrir_gerenciador = discord.ui.Button(
             label="Gerenciar Cargos",
-            style=discord.ButtonStyle.primary,  # azul combina com o accent_color blurple
+            style=discord.ButtonStyle.primary,  # CORRIGIDO: azul combina com blurple
             emoji="⚙️",
             custom_id="painel:gerenciar_cargos",
         )
@@ -190,51 +190,37 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
         url_do_icone = guild.icon.url if guild.icon else None
 
         self.container = discord.ui.Container(
-            # ────────────────────────────────────────────────
-            # Section (Título + descrição + Thumbnail)
-            # ────────────────────────────────────────────────
+            # Título
             discord.ui.TextDisplay(
                 "# ⚙️ Painel de Gerenciamento de Cargos"
             ),
 
-            # ────────────────────────────────────────────────
-            # Separator
-            # ────────────────────────────────────────────────
-            discord.ui.Separator(
-                spacing=discord.SeparatorSpacing.large
-            ),
-            # ────────────────────────────────────────────────
-            # TextDisplay
-            # ────────────────────────────────────────────────
+            # Separador
+            discord.ui.Separator(spacing=discord.SeparatorSpacing.large),
 
+            # Seção com descrição e thumbnail
             discord.ui.Section(
                 "> **Sistema para Gerenciar Cargos do Servidor**\n",
                 (
-
-                    "- Esse painel é dedicado e uso exclusivo da Diretoria e GATE.\n"
+                    "- Esse painel é dedicado e de uso exclusivo da Diretoria e GATE.\n"
                     "- Utilizado para **Adicionar** e **Remover** cargos de membros.\n"
-                    "- Todo e qualquer uso abusivo desse Sistema pode Gerar Punições ao executor.**\n"
-                    "- Toda atividade é registrada, o sistema liberará seu acesso e ajustará os cargos automaticamente."
+                    "- Todo e qualquer uso abusivo desse Sistema pode gerar punições ao executor.\n"
+                    "- Toda atividade é registrada, o sistema liberará seu acesso e ajustará os cargos automaticamente.\n"
                     "- Clique no botão abaixo para iniciar um novo gerenciamento.\n"
                 ),
-                accessory=discord.ui.Thumbnail(
-                    url_do_icone) if url_do_icone else None,
+                accessory=discord.ui.Thumbnail(url_do_icone) if url_do_icone else None,
             ),
 
-            # ────────────────────────────────────────────────
-            # Separator
-            # ────────────────────────────────────────────────
-            discord.ui.Separator(
-                spacing=discord.SeparatorSpacing.large
-            ),
+            # Separador
+            discord.ui.Separator(spacing=discord.SeparatorSpacing.large),
 
-            # ────────────────────────────────────────────────
-            # ActionRow
-            # ────────────────────────────────────────────────
+            # Botão — CORRIGIDO: nome da variável
             self.linha_do_botao,
+
             accent_color=discord.Color.blurple(),
         )
-        # 👈 não esquecer disso // sem isso não aparece mensagem nenhuma
+
+        # Adiciona o container à view (obrigatório para exibir)
         self.add_item(self.container)
 
     async def _ao_clicar_gerenciar(self, interaction: discord.Interaction):
@@ -243,8 +229,7 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
         Abre a GerenciarCargosView de forma ephemeral para o usuário que clicou.
         """
         # Cria a view interativa passando o usuário como membro_executor
-        view_de_gerenciamento = GerenciarCargosView(
-            membro_executor=interaction.user)
+        view_de_gerenciamento = GerenciarCargosView(membro_executor=interaction.user)
 
         await interaction.response.send_message(
             "Selecione o candidato:",
