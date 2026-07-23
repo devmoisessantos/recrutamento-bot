@@ -28,7 +28,8 @@ class GerenciarCargosView(LoggingViewMixin, discord.ui.LayoutView):
 
         for escopo in escopos_do_executor:
             # Agora passamos o membro_executor para filtrar corretamente
-            cargos_deste_escopo = listar_cargos_do_escopo(escopo, membro_executor)
+            cargos_deste_escopo = listar_cargos_do_escopo(
+                escopo, membro_executor)
 
             for nome_do_cargo in cargos_deste_escopo:
                 # Evita duplicatas (um mesmo cargo pode aparecer em mais de um escopo)
@@ -49,7 +50,8 @@ class GerenciarCargosView(LoggingViewMixin, discord.ui.LayoutView):
         para atualizar o resumo exibido.
         """
         # Select para escolher o membro
-        select_membro = discord.ui.UserSelect(placeholder="1. Selecione o membro")
+        select_membro = discord.ui.UserSelect(
+            placeholder="1. Selecione o membro")
         select_membro.callback = self._ao_selecionar_membro
 
         # Select para escolher o cargo (apenas os permitidos)
@@ -63,11 +65,13 @@ class GerenciarCargosView(LoggingViewMixin, discord.ui.LayoutView):
         select_cargo.callback = self._ao_selecionar_cargo
 
         # Botão de adicionar
-        botao_adicionar = discord.ui.Button(label="Adicionar Cargo", style=discord.ButtonStyle.success)
+        botao_adicionar = discord.ui.Button(
+            label="Adicionar Cargo", style=discord.ButtonStyle.success)
         botao_adicionar.callback = self._ao_clicar_adicionar
 
         # Botão de remover
-        botao_remover = discord.ui.Button(label="Remover Cargo", style=discord.ButtonStyle.danger)
+        botao_remover = discord.ui.Button(
+            label="Remover Cargo", style=discord.ButtonStyle.danger)
         botao_remover.callback = self._ao_clicar_remover
 
         # Monta as linhas de componentes
@@ -110,7 +114,8 @@ class GerenciarCargosView(LoggingViewMixin, discord.ui.LayoutView):
         """Callback quando o executor seleciona um membro no UserSelect."""
         # O valor vem como string, precisamos converter para int e buscar o membro
         id_do_membro_selecionado = interaction.data["values"][0]
-        self.candidato_selecionado = interaction.guild.get_member(int(id_do_membro_selecionado))
+        self.candidato_selecionado = interaction.guild.get_member(
+            int(id_do_membro_selecionado))
 
         # Reconstroi o painel para atualizar o resumo
         self._montar_componentes()
@@ -156,12 +161,14 @@ class GerenciarCargosView(LoggingViewMixin, discord.ui.LayoutView):
         await interaction.response.defer(ephemeral=True)
         await remover_cargo(interaction, self.candidato_selecionado, self.cargo_selecionado)
 
+
 class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
     """
     Painel fixo que fica exposto no canal de gerenciamento de cargos.
     Contém um botão que, ao ser clicado, abre a view interativa
     GerenciarCargosView para o usuário que clicou.
     """
+
     def __init__(self, guild: discord.Guild):
         super().__init__(timeout=None)  # timeout=None = painel permanente
 
@@ -170,7 +177,7 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
 
         self.botao_abrir_gerenciador = discord.ui.Button(
             label="Gerenciar Cargos",
-            style=discord.ButtonStyle.red,  # azul combina com o accent_color blurple
+            style=discord.ButtonStyle.primary,  # azul combina com o accent_color blurple
             emoji="⚙️",
             custom_id="painel:gerenciar_cargos",
         )
@@ -205,12 +212,13 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
                 (
 
                     "- Esse painel é dedicado e uso exclusivo da Diretoria e GATE.\n"
-                    "- Utilizado para **Adicionar** e **Remover** cargos de membros.\n" 
+                    "- Utilizado para **Adicionar** e **Remover** cargos de membros.\n"
                     "- Todo e qualquer uso abusivo desse Sistema pode Gerar Punições ao executor.**\n"
                     "- Toda atividade é registrada, o sistema liberará seu acesso e ajustará os cargos automaticamente."
                     "- Clique no botão abaixo para iniciar um novo gerenciamento.\n"
                 ),
-                accessory=discord.ui.Thumbnail(url_do_icone) if url_do_icone else None,
+                accessory=discord.ui.Thumbnail(
+                    url_do_icone) if url_do_icone else None,
             ),
 
             # ────────────────────────────────────────────────
@@ -223,10 +231,11 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
             # ────────────────────────────────────────────────
             # ActionRow
             # ────────────────────────────────────────────────
-            self.action_row,
+            self.linha_do_botao,
             accent_color=discord.Color.blurple(),
         )
-        self.add_item(self.container)  # 👈 não esquecer disso // sem isso não aparece mensagem nenhuma 
+        # 👈 não esquecer disso // sem isso não aparece mensagem nenhuma
+        self.add_item(self.container)
 
     async def _ao_clicar_gerenciar(self, interaction: discord.Interaction):
         """
@@ -234,7 +243,8 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
         Abre a GerenciarCargosView de forma ephemeral para o usuário que clicou.
         """
         # Cria a view interativa passando o usuário como membro_executor
-        view_de_gerenciamento = GerenciarCargosView(membro_executor=interaction.user)
+        view_de_gerenciamento = GerenciarCargosView(
+            membro_executor=interaction.user)
 
         await interaction.response.send_message(
             "Selecione o candidato:",
