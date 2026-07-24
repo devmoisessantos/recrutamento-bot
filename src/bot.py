@@ -18,6 +18,9 @@ from src.panels.setup_paineis import (
     garantir_painel_gerenciar_cargos
 )
 
+from src.utils.deploy_logger import (
+    inicio_deploy, fim_deploy, etapa, sucesso, erro, aviso, info, separador
+)
 
 intents = discord.Intents.default()
 intents.members = True  # necessário para ler/restaurar cargos e apelidos de membros
@@ -31,29 +34,47 @@ class CmsValleyBot(commands.Bot):
         super().__init__(command_prefix="!", intents=intents)
 
     async def setup_hook(self):
-        # Carregar extensões (cogs)
-        await self.load_extension("src.cogs.gerenciar_cargos")        
-        await self.load_extension("src.hierarquia.listener")        
-        await self.load_extension("src.cogs.liberar_prova")
-        await self.load_extension("src.cogs.recrutar")
-        await self.load_extension("src.cogs.aprovar")
-        await self.load_extension("src.cogs.reprovar")
-        await self.load_extension("src.cogs.whitelist")
-        await self.load_extension("src.cogs.hierarquia")
-        await self.load_extension("src.cogs.backup")
-        await self.load_extension("src.cogs.restore")        
-        await self.load_extension("src.cogs.diff")
-        await self.load_extension("src.cogs.status") 
 
+        inicio_deploy()
 
+        # Listar extensões (cogs)
+        cogs = [
+
+            "src.cogs.gerenciar_cargos",
+            "src.hierarquia.listener",
+            "src.cogs.liberar_prova",
+            "src.cogs.recrutar",
+            "src.cogs.aprovar",
+            "src.cogs.reprovar",
+            "src.cogs.whitelist",
+            "src.cogs.hierarquia",
+            "src.cogs.backup",
+            "src.cogs.restore",
+            "src.cogs.diff",
+            "src.cogs.status",
+        ]
+
+        total = len(cogs)
+        for i, cog in enumerate(cogs, 1):
+            etapa(i, total, f"Carregando {cog}")
+            try:
+                await self.load_extension(cog)
+                sucesso(f"  {cog} carregado")
+            except Exception as e:
+                erro(f"  {cog} FALHOU: {e}")
+
+        separador()
+
+        info("Sincronizando comandos de barra...")
         guild_object = discord.Object(id=GUILD_ID)
         self.tree.copy_global_to(guild=guild_object)
         await self.tree.sync(guild=guild_object)
-        logger.info(f"Comandos de barra sincronizados com o servidor (ID: {GUILD_ID})")
+        sucesso(f"Comandos sincronizados (ID: {GUILD_ID})")
 
-
+        info("Conectando ao banco de dados...")
         await init_db()
         await seed_perguntas_se_vazio()
+        sucesso("Banco de dados pronto")
 
         # Inicializa como None - serão criados no on_ready
         self.painel_recrutamento_view = None
@@ -76,7 +97,7 @@ class CmsValleyBot(commands.Bot):
                     f"```py\n{tb}\n```"
                 )
               
-    async def on_ready(self):    # 👈 agora dentro da classe, mesma indentação de setup_hook
+    async def on_ready(self):
         guild = self.get_guild(int(GUILD_ID))
         if guild is None:
             logger.warning("Servidor ainda não encontrado.")
@@ -84,22 +105,34 @@ class CmsValleyBot(commands.Bot):
 
         logger.info(f"✅ Bot conectado como {self.user} (ID: {self.user.id})")
 
+        # ═══════════════════════════════════════════════════════════════
+        # CRIA as views (só na primeira vez que o bot liga)
+        # ═══════════════════════════════════════════════════════════════
         if self.painel_recrutamento_view is None:
+
             self.painel_recrutamento_view = PainelRecrutamentoLayout()
             self.painel_avaliacao_view = PainelAvaliacaoLayout()
             self.painel_whitelist_view = PainelWhitelistLayout(guild)
             self.painel_gerenciar_cargos_view = PainelGerenciarCargoLayout(guild=guild)
 
-            self.add_view(self.painel_recrutamento_view)
-            self.add_view(self.painel_avaliacao_view)
-            self.add_view(self.painel_whitelist_view)
-            self.add_view(self.painel_gerenciar_cargos_view)
+        # ═══════════════════════════════════════════════════════════════
+        # REGISTRA as views persistentes (SEMPRE, em todo reinício)
+        # O add_view precisa rodar toda vez que o bot liga, não só na
+        # primeira. Se não registrar, os botões das mensagens antigas
+        # não são reconhecidos e os painéis "morrem".
+        # ═══════════════════════════════════════════════════════════════
+        self.add_view(self.painel_recrutamento_view)
+        self.add_view(self.painel_avaliacao_view)
+        self.add_view(self.painel_whitelist_view)
+        self.add_view(self.painel_gerenciar_cargos_view)
 
+        # Garante que as mensagens existem nos canais
         await garantir_painel_recrutamento(self)
         await garantir_painel_avaliacao(self)
         await garantir_painel_whitelist(self)
         await garantir_painel_gerenciar_cargos(self)
 
+        fim_deploy()
 
 bot = CmsValleyBot()
 
