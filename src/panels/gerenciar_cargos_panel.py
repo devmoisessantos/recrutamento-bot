@@ -227,10 +227,22 @@ class PainelGerenciarCargoLayout(LoggingViewMixin, discord.ui.LayoutView):
         """
         Callback do botão do painel fixo.
         Abre a GerenciarCargosView de forma ephemeral para o usuário que clicou.
+        Se o usuário não tiver permissão (nenhum escopo), avisa e não abre.
         """
         # Defer PRIMEIRO — avisa ao Discord que vamos responder,
         # evitando o timeout de 3 segundos (Unknown interaction)
         await interaction.response.defer(ephemeral=True)
+
+        # Verifica se o usuário tem pelo menos um escopo de gerenciamento
+        escopos_do_usuario = determinar_escopos(interaction.user)
+
+        if not escopos_do_usuario:
+            # Usuário sem permissão — avisa e não abre a view
+            await interaction.followup.send(
+                "❌ Você não possui permissão para gerenciar cargos.",
+                ephemeral=True,
+            )
+            return
 
         # Agora sim faz o processamento pesado:
         # criar a view percorre escopos, cargos, etc.
